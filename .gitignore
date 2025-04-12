@@ -9,6 +9,8 @@ __pycache__/
 venv/git
 env/
 ENV/
+.venv/
+
 
 # Logs
 *.log
@@ -21,6 +23,7 @@ ENV/
 # OS junk
 .DS_Store
 Thumbs.db
+.venv
 
 # testing stuff
 test.py

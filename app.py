@@ -7,6 +7,7 @@ from tracks.nessie import nessie_bp
 # get the functions from db.py
 from db import init_db, get_db, create_user, find_user_by_username, verify_user
 from dotenv import load_dotenv
+import os
 
 # load environment variables from the .env file
 load_dotenv()
@@ -88,4 +89,4 @@ def test_get_user():
 
 # Entry point for the app
 if __name__ == '__main__':
-    app.run(port=3001, debug=True)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 3001)))
