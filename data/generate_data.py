@@ -3,22 +3,23 @@ import random
 import uuid
 from datetime import datetime, timedelta
 
-def generate_sample_transaction(vendor):
+def generate_sample_transaction(vendor, ref_time):
     """
-    Generate a single transaction dictionary based on the vendor profile.
+    Generate a single transaction dictionary based on the vendor profile and a reference time.
     
     The vendor profile is a dict with:
       - merchant_id
       - vendor_name
       - min: minimum amount for a transaction
       - max: maximum amount for a transaction
+
+    The transaction date is generated as a random timestamp within the past 60 days relative to ref_time.
     """
     txn_id = f"txn_{uuid.uuid4().hex[:6]}"
-    now = datetime.now()
-    # Generate a random purchase date within the past 60 days.
+    # Generate a random purchase date within the past 60 days based on ref_time.
     random_days = random.randint(0, 59)
     random_seconds = random.randint(0, 86399)  # seconds in a day
-    purchase_date = now - timedelta(days=random_days, seconds=random_seconds)
+    purchase_date = ref_time - timedelta(days=random_days, seconds=random_seconds)
     purchase_date_str = purchase_date.strftime("%Y-%m-%d %H:%M")
     amount = round(random.uniform(vendor["min"], vendor["max"]), 2)
     return {
@@ -29,7 +30,7 @@ def generate_sample_transaction(vendor):
         "amount": amount
     }
 
-def generate_sample_spend_history(account_type, num_transactions):
+def generate_sample_spend_history(account_type, num_transactions, ref_time):
     """
     Generate a list of transaction dictionaries based on account type.
     
@@ -37,6 +38,8 @@ def generate_sample_spend_history(account_type, num_transactions):
       "1" - Balanced spending: mix of food, transport, and groceries.
       "2" - Overspending on food.
       "3" - Overspending on entertainment.
+      
+    Each transaction date is generated relative to ref_time.
     """
     if account_type == "1":
         vendors = [
@@ -65,15 +68,27 @@ def generate_sample_spend_history(account_type, num_transactions):
     transactions = []
     for _ in range(num_transactions):
         vendor = random.choice(vendors)
-        txn = generate_sample_transaction(vendor)
+        txn = generate_sample_transaction(vendor, ref_time)
         transactions.append(txn)
+    return transactions
+
+def update_with_recent_transaction(transactions):
+    """
+    Update one random transaction from the transactions list with a purchase_date set to a random time 
+    between 0 and 2 minutes ago from current real time.
+    """
+    if transactions:
+        idx = random.randint(0, len(transactions) - 1)
+        random_offset = random.randint(0, 120)  # 0 to 120 seconds
+        new_time = datetime.now() - timedelta(seconds=random_offset)
+        transactions[idx]["purchase_date"] = new_time.strftime("%Y-%m-%d %H:%M")
     return transactions
 
 def generate_data(num_people=50):
     """
     Generate sample data for 'num_people' individuals.
     
-    Each person has:
+    Each individual object includes:
       - "email_id": e.g. "person1@example.com"
       - "person_id": e.g. "person_1"
       - "spend_history": a list of transaction objects (each with id, merchant_id, vendor_name, purchase_date, amount)
@@ -81,9 +96,15 @@ def generate_data(num_people=50):
       - "unnecessary_purchases": a string of what the user considers non-essential or wasteful
       - "budget": an integer (e.g., a monthly budget)
       
+    For each person, one random transaction in their spend_history is updated to have a purchase_date set to a random time 
+    between 0 and 2 minutes ago from the current time.
+      
     Returns:
         dict: A dictionary representing the JSON object.
     """
+    # Use the current real time as a reference for generating the historical transactions.
+    base_time = datetime.now()
+    
     necessary_samples = [
         "groceries, bills, rent",
         "utilities, healthcare, food",
@@ -101,11 +122,15 @@ def generate_data(num_people=50):
     for i in range(1, num_people + 1):
         account_type = random.choice(["1", "2", "3"])
         num_txns = random.randint(5, 15)
-        spend_history = generate_sample_spend_history(account_type, num_txns)
+        spend_history = generate_sample_spend_history(account_type, num_txns, base_time)
+        
+        # Update one random transaction to be set within the last 0-2 minutes.
+        updated_spend_history = update_with_recent_transaction(spend_history)
+        
         person = {
             "email_id": f"person{i}@example.com",
             "person_id": f"person_{i}",
-            "spend_history": spend_history,
+            "spend_history": updated_spend_history,
             "necessary_purchases": random.choice(necessary_samples),
             "unnecessary_purchases": random.choice(unnecessary_samples),
             "budget": random.randint(0, 500)
