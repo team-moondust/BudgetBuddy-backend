@@ -123,8 +123,8 @@ def chat():
     }
 
     # Check if the system prompt is already in the history, insert it
-    if not chat_history:
-        chat_history.insert(0, system_prompt)
+    # if not chat_history:
+    chat_history.insert(0, system_prompt)
     
     model = genai2.GenerativeModel(model_name="gemini-2.0-flash")
     chat_session = model.start_chat(history=chat_history)
