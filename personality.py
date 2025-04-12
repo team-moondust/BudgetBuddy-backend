@@ -146,7 +146,13 @@ def chat():
 
     return jsonify({
         "text": response.text,
-        "history": chat_session.history
+        "history": [
+        {
+            "role": msg.role,
+            "parts": [{"text": part.text} for part in msg.parts]
+        }
+        for msg in chat_session.history
+    ]
     })
 
 
@@ -171,18 +177,21 @@ if __name__ == "__main__":
     # make_notification(new_spend, recent_spends, big_spends)
 
 
-    json_data = generate_data(1)
+    # json_data = generate_data(1)
+
+    # person = json_data.get('people')[0]
+    # budget = person.get("budget")
+    # spend_history = person.get("spend_history")
+
+    # (new_spend, recent_spends, big_spends) = process_transactions(spend_history)
+
+    # msg = "what can i do to reduce my expenses :("
+    # (response, history) = chat(msg, [], recent_spends, big_spends, budget)
+    # msg = "hmm could you tell me more about overall strategy?"
+    # (response, history) = chat(msg, history, recent_spends, big_spends, budget)
 
 
-    person = json_data.get('people')[0]
-    budget = person.get("budget")
-    spend_history = person.get("spend_history")
+    app.run(port=9000, debug=False, use_reloader=False)
 
-    (new_spend, recent_spends, big_spends) = process_transactions(spend_history)
-
-    msg = "what can i do to reduce my expenses :("
-    (response, history) = chat(msg, [], recent_spends, big_spends, budget)
-    msg = "hmm could you tell me more about overall strategy?"
-    (response, history) = chat(msg, history, recent_spends, big_spends, budget)
 
 
