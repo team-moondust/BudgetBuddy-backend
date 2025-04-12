@@ -4,7 +4,11 @@ from flask_cors import CORS
 #from tracks.nessie import nessie_bp
 from tracks.mock_transactions import mock_bp
 from db import init_db, create_user, verify_user, find_user_by_username
+from personality import process_transactions, make_notification
+import google.generativeai as genai2
+from dotenv import load_dotenv
 
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS so frontend can access it
@@ -15,11 +19,9 @@ init_db(app)
 
 # Register blueprint
 # app.register_blueprint(nessie_bp, url_prefix='/api')
-app.register_blueprint(mock_bp, url_prefix='/api') # account for the fake stuff
+# app.register_blueprint(mock_bp, url_prefix='/api') # account for the fake stuff
 
-# --- Temporary endpoints for testing user functions ---
-
-@app.route('/api/test/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def test_register():
     """
     Test endpoint to register a new user.
@@ -38,7 +40,7 @@ def test_register():
     user_id = create_user(username, email, password)
     return jsonify({"message": "User created", "user_id": str(user_id)}), 201
 
-@app.route('/api/test/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def test_login():
     """
     Test endpoint to verify user credentials.
@@ -56,7 +58,7 @@ def test_login():
     else:
         return jsonify({"error": "Invalid username or password"}), 401
 
-@app.route('/api/test/user', methods=['GET'])
+@app.route('/api/user', methods=['GET'])
 def test_get_user():
     """
     Test endpoint to retrieve a user's details.
@@ -74,13 +76,7 @@ def test_get_user():
     user['_id'] = str(user['_id'])
     return jsonify(user), 200
 
-
-from personality import process_transactions, make_notification
-import google.generativeai as genai2
-import os
-
-
-@app.route('/notify', methods=['POST'])
+@app.route('/api/notify', methods=['POST'])
 def notify():
     data = request.get_json()
     spend_history = data.get("spend_history", [])
@@ -94,7 +90,7 @@ def notify():
         return jsonify({"notification": "No new transactions."})
 
 
-@app.route('/chat', methods=['POST'])
+@app.route('/api/chat', methods=['POST'])
 def chat():
     data = request.get_json()
     msg = data.get('chat', '')
@@ -143,7 +139,6 @@ def chat():
         for msg in chat_session.history
     ]
     })
-
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
