@@ -8,7 +8,7 @@ def mock_transactions(account_id):
     account_id = str(account_id)
 
     if account_id == "1":
-        # Balanced budget, moderate spending
+        # Account one is for a balanced user, moderate spending
         mock_data = [
             {
                 "id": "txn1",
@@ -34,7 +34,7 @@ def mock_transactions(account_id):
         ]
 
     elif account_id == "2":
-        # Overspending on food
+        # Account 2 is for a unbalanced user, overspending on food
         mock_data = [
             {
                 "id": "txn1",
@@ -74,7 +74,7 @@ def mock_transactions(account_id):
         ]
 
     elif account_id == "3":
-        # Heavy entertainment spending
+        # Account 3 is for a unbalanced user, overspending on entertainment
         mock_data = [
             {
                 "id": "txn1",
