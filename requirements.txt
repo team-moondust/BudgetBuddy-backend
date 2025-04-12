@@ -4,3 +4,4 @@ python-dotenv
 flask-cors
 flask-pymongo
 gunicorn
+Werkzeug

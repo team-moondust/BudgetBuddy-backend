@@ -89,4 +89,4 @@ def test_get_user():
 
 # Entry point for the app
 if __name__ == '__main__':
-    app.run(port=os.environ.get("PORT") or 3001, debug=True)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 3001)))
