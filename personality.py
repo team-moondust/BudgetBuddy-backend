@@ -2,6 +2,8 @@
 from dotenv import load_dotenv
 import os
 from google import genai
+import google.generativeai as genai2
+
 import pandas as pd
 from io import StringIO
 from datetime import datetime, timedelta
@@ -91,10 +93,49 @@ def make_notification(new_spend, recent_spends, big_spends):
 
 
 
-if __name__ == "__main__":
+
+def chat(msg, chat_history, recent_spends, big_spends, budget):
+    model = genai2.GenerativeModel(
+        model_name="gemini-2.0-flash"
+    )
+    genai2.configure(api_key=os.getenv("gemini_api_key"))
+
+    system_prompt = {
+        "role": "user",
+        "parts": [{"text": f"""
+            You are a small, cute financial tomagachi! You will be helping the user manage their spending. 
+            Here are their most recent 10 transactions: {recent_spends}
+            Here are the most recent large transactions: {big_spends}
+            Here's their monthly budget: {budget}
+            You should respond in relatively short messages, and if you think its necessary, ask clarifying questions. 
+            Respond in a slightly sarcastic way, all lowercase, and a bit lowkey, like you're their slighly fed up tomagachi
+            If they're doing well for their budget, be proud of them (but only show it a bit). If they're not doing well, be a bit sarcastic but still helpful,
+            asking why they made some budget choices. 
+                examples:
+                    "Good job staying under your lunch budget!" 
+                    "A bit pricy for tacos huh..." 
+                    "A tad expensive, but you've earned it!"
+                    "New monitor? You just got a new phone..." 
+            """ }]
+    }
+
+    # Check if the system prompt is already in the history, insert it
+    if not chat_history:
+        chat_history.insert(0, system_prompt)
+
+
+    chat_session = model.start_chat(history=chat_history)
+    response = chat_session.send_message(msg)
+    print(response.text)
+
+    return(response, chat_session.history)
+
+
+
+if __name__ == "__main__":  
     spend_history = '''
     [
-        {"id": "txn1", "merchant_id": "food_merchant_id", "vendor_name": "Domino's Pizza", "purchase_date": "2025-04-12 00:30", "amount": 35.50},
+        {"id": "txn1", "merchant_id": "food_merchant_id", "vendor_name": "Domino's Pizza", "purchase_date": "2025-04-12 2:30", "amount": 35.50},
         {"id": "txn2", "merchant_id": "coffee_merchant", "vendor_name": "Starbucks", "purchase_date": "2025-03-15 09:45", "amount": 6.25},
         {"id": "txn3", "merchant_id": "retail", "vendor_name": "Target", "purchase_date": "2025-02-20 14:10", "amount": 120.99},
         {"id": "txn4", "merchant_id": "tech", "vendor_name": "Apple Store", "purchase_date": "2025-03-25 13:30", "amount": 999.99},
@@ -110,4 +151,12 @@ if __name__ == "__main__":
 
     (new_spend, recent_spends, big_spends) = process_transactions(spend_history)
     
-    make_notification(new_spend, recent_spends, big_spends)
+    # make_notification(new_spend, recent_spends, big_spends)
+
+    budget = 600
+    msg = "what can i do to reduce my expenses :("
+    (response, history) = chat(msg, [], recent_spends, big_spends, budget)
+    msg = "hmm could you tell me more about overall strategy?"
+    (response, history) = chat(msg, history, recent_spends, big_spends, budget)
+
+
