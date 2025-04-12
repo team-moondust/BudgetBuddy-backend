@@ -103,13 +103,46 @@ BASE_URL = "http://api.nessieisreal.com"
 
 nessie_bp = Blueprint('nessie', __name__)
 
-@nessie_bp.route('/transactions/<account_id>', methods=['GET'])
-def get_transactions(account_id):
+@nessie_bp.route('/customers', methods=['GET'])
+def get_all_customers():
+    """
+    Get all customers from the Nessie API.
+    """
+    try:
+        url = f"{BASE_URL}/customers?key={NESSIE_API_KEY}"
+        response = requests.get(url)
+        response.raise_for_status()
+        return jsonify(response.json())
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching customers: {e}")
+        return jsonify({"error": "Failed to fetch customers"}), 500
+
+
+@nessie_bp.route('/customers/<customer_id>/accounts', methods=['GET'])
+def get_accounts_for_customer(customer_id):
+    """
+    Get all accounts associated with a customer.
+    """
+    try:
+        url = f"{BASE_URL}/customers/{customer_id}/accounts?key={NESSIE_API_KEY}"
+        response = requests.get(url)
+        response.raise_for_status()
+        return jsonify(response.json())
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching accounts: {e}")
+        return jsonify({"error": "Failed to fetch accounts"}), 500
+
+
+@nessie_bp.route('/accounts/<account_id>/purchases', methods=['GET'])
+def get_purchases_for_account(account_id):
+    """
+    Get all purchases for an account (transaction history).
+    """
     try:
         url = f"{BASE_URL}/accounts/{account_id}/purchases?key={NESSIE_API_KEY}"
         response = requests.get(url)
         response.raise_for_status()
         return jsonify(response.json())
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching from Nessie: {e}")
+        print(f"Error fetching transactions: {e}")
         return jsonify({"error": "Failed to fetch transactions"}), 500
