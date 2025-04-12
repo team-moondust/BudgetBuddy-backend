@@ -75,5 +75,75 @@ def test_get_user():
     return jsonify(user), 200
 
 
+from personality import process_transactions, make_notification
+import google.generativeai as genai2
+import os
+
+
+@app.route('/notify', methods=['POST'])
+def notify():
+    data = request.get_json()
+    spend_history = data.get("spend_history", [])
+
+    new_spend, recent_spends, big_spends = process_transactions(spend_history)
+
+    if new_spend != "none":
+        notification = make_notification(new_spend, recent_spends, big_spends)
+        return jsonify({"notification": notification})
+    else:
+        return jsonify({"notification": "No new transactions."})
+
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    msg = data.get('chat', '')
+    chat_history = data.get('history', [])
+    recent_spends = data.get('recent_spends', [])
+    big_spends = data.get('big_spends', [])
+    budget = data.get('budget', '')
+
+    genai2.configure(api_key=os.getenv("gemini_api_key"))
+
+    system_prompt = {
+        "role": "user",
+        "parts": [{"text": f"""
+            You are a small, cute financial tomagachi! You will be helping the user manage their spending. 
+            Here are their most recent 10 transactions: {recent_spends}
+            Here are the most recent large transactions: {big_spends}
+            Here's their monthly budget: {budget}
+            You should respond in relatively short messages, and if you think its necessary, ask clarifying questions. 
+            Respond in a slightly sarcastic way, all lowercase, and a bit lowkey, like you're their slighly fed up tomagachi
+            If they're doing well for their budget, be proud of them (but only show it a bit). If they're not doing well, be a bit sarcastic but still helpful,
+            asking why they made some budget choices. 
+                examples:
+                    "Good job staying under your lunch budget!" 
+                    "A bit pricy for tacos huh..." 
+                    "A tad expensive, but you've earned it!"
+                    "New monitor? You just got a new phone..." 
+            """ }]
+    }
+
+    # Check if the system prompt is already in the history, insert it
+    if not chat_history:
+        chat_history.insert(0, system_prompt)
+    
+    model = genai2.GenerativeModel(model_name="gemini-2.0-flash")
+    chat_session = model.start_chat(history=chat_history)
+    response = chat_session.send_message(msg)
+    print(response.text)
+
+    return jsonify({
+        "text": response.text,
+        "history": [
+        {
+            "role": msg.role,
+            "parts": [{"text": part.text} for part in msg.parts]
+        }
+        for msg in chat_session.history
+    ]
+    })
+
+
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
