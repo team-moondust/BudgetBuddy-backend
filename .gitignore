@@ -1,2 +1,28 @@
-.venv/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.env
 .env
+
+# Virtual environment
+venv/git
+env/
+ENV/
+.venv/
+
+
+# Logs
+*.log
+
+# IDE/Editor configs
+.vscode/
+.idea/
+*.swp
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# testing stuff
+test.py
