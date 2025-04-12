@@ -1,2 +1,6 @@
 .venv/
 .env
+__pycache__/db.cpython-313.pyc
+.gitignore
+__pycache__/generate_data.cpython-313.pyc
+tracks/__pycache__/mock_transactions.cpython-313.pyc
