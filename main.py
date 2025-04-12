@@ -9,6 +9,7 @@ from tracks.mock_transactions import mock_bp
 from db import init_db, create_user, verify_user, find_user_by_username
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
+from score import compute_final_score_for_person, explanation_to_score
 
 
 
@@ -140,6 +141,35 @@ def chat():
         }
         for msg in chat_session.history
     ]
+    })
+
+@app.route('/api/compute_score', methods=['POST'])
+def compute_score():
+    """
+    Expects JSON payload with the following keys:
+      - email_id 
+      - person_id 
+      - spend_history: list of transaction objects
+      - necessary_purchases: string
+      - unnecessary_purchases: string
+      - budget: integer (monthly budget)
+    
+    Returns a JSON with the computed final score and an explanation.
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid or missing JSON payload."}), 400
+
+    # assuming the payload already contains the keys required by compute_final_score_for_person
+    try:
+        final_score = compute_final_score_for_person(data, w_math=0.7, w_llm=0.3)
+        explanation = explanation_to_score(data)
+    except Exception as e:
+        return jsonify({"error": f"Score calculation failed: {str(e)}"}), 500
+    
+    return jsonify({
+        "final_score": final_score,
+        "explanation": explanation
     })
 
 if __name__ == '__main__':
