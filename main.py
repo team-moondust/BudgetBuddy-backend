@@ -91,7 +91,7 @@ def notify():
         notification = make_notification(new_spend, recent_spends, big_spends)
         return jsonify({"notification": notification})
     else:
-        return jsonify({"notification": "No new transactions."})
+        return jsonify({"notification": "No new transactions. Good Job!"})
 
 
 @app.route('/chat', methods=['POST'])
