@@ -1,8 +1,8 @@
 # import the necessary libraries
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-#from tracks.nessie import nessie_bp   --->   change when nessie is back up again
-from tracks.mock_transactions import mock_bp
+from tracks.nessie import nessie_bp 
+#from tracks.mock_transactions import mock_bp
 
 # get the functions from db.py
 from db import init_db, get_db, create_user, find_user_by_username, verify_user
@@ -21,8 +21,8 @@ init_db(app)
 
 
 # Register blueprint
-# app.register_blueprint(nessie_bp, url_prefix='/api')
-app.register_blueprint(mock_bp, url_prefix='/api') # account for the fake stuff
+app.register_blueprint(nessie_bp, url_prefix='/api')
+#app.register_blueprint(mock_bp, url_prefix='/api') # account for the fake stuff
 
 # ----------
 # Temporary endpoints for testing user functions 
