@@ -21,4 +21,4 @@ ENV PORT=8080
 EXPOSE $PORT
 
 # Start the Flask app
-CMD ["python", "app.py"]
+CMD ["python3", "app.py"]
