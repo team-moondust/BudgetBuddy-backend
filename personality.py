@@ -7,7 +7,7 @@ from io import StringIO
 from datetime import datetime, timedelta
 
 
-load_dotenv()
+load_dotenv()   
 
 """
 process the transactions. Returns 2 strings
