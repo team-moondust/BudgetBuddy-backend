@@ -2,5 +2,3 @@ Flask
 requests
 python-dotenv
 flask-cors
-flask-pymongo
-gunicorn
