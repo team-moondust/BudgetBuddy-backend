@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 import json
 from datetime import datetime, timedelta
-from generate_data import generate_data
+from data.generate_data import generate_data
 import google.generativeai as genai2
 from google import genai
 
