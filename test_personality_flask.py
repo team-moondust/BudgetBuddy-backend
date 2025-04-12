@@ -1,6 +1,7 @@
 import requests
 from data.generate_data import generate_data
-from personality import process_transactions  # if it's named flask_app.py
+from personality import process_transactions
+
 
 json_data = generate_data(1)
 person = json_data['people'][0]
@@ -18,7 +19,7 @@ payload = {
     "big_spends": big_spends,
     "budget": budget
 }
-response = requests.post("http://127.0.0.1:9000/chat", json=payload)
+response = requests.post("http://127.0.0.1:3001/chat", json=payload)
 
 
 
@@ -29,7 +30,7 @@ try:
     payload["chat"] = msg
     payload["history"] = result["history"]
 
-    response = requests.post("http://127.0.0.1:9000/chat", json=payload)
+    response = requests.post("http://127.0.0.1:3001/chat", json=payload)
     result = response.json()
     print("AI:", result["text"])
 
