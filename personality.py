@@ -10,8 +10,15 @@ from datetime import datetime, timedelta
 
 from generate_data import generate_data
 
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
 
 load_dotenv()   
+
+
+app = Flask(__name__)
+
 
 """
 process the transactions. Returns 2 strings
@@ -83,13 +90,30 @@ def make_notification(new_spend, recent_spends, big_spends):
     )
     print(notification_response.text)
 
+@app.route('/notify', methods=['POST'])
+def notify():
+    data = request.get_json()
+    spend_history = data.get("spend_history", [])
+
+    new_spend, recent_spends, big_spends = process_transactions(spend_history)
+
+    if new_spend != "none":
+        notification = make_notification(new_spend, recent_spends, big_spends)
+        return jsonify({"notification": notification})
+    else:
+        return jsonify({"notification": "No new transactions."})
 
 
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    msg = data.get('chat', '')
+    chat_history = data.get('history', [])
+    recent_spends = data.get('recent_spends', [])
+    big_spends = data.get('big_spends', [])
+    budget = data.get('budget', '')
 
-def chat(msg, chat_history, recent_spends, big_spends, budget):
-    model = genai2.GenerativeModel(
-        model_name="gemini-2.0-flash"
-    )
+    
     genai2.configure(api_key=os.getenv("gemini_api_key"))
 
     system_prompt = {
@@ -114,13 +138,16 @@ def chat(msg, chat_history, recent_spends, big_spends, budget):
     # Check if the system prompt is already in the history, insert it
     if not chat_history:
         chat_history.insert(0, system_prompt)
-
-
+    
+    model = genai2.GenerativeModel(model_name="gemini-2.0-flash")
     chat_session = model.start_chat(history=chat_history)
     response = chat_session.send_message(msg)
     print(response.text)
 
-    return(response, chat_session.history)
+    return jsonify({
+        "text": response.text,
+        "history": chat_session.history
+    })
 
 
 
