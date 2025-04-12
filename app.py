@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS so frontend can access it
 
 # Register blueprint
-#app.register_blueprint(nessie_bp, url_prefix='/api')
+# app.register_blueprint(nessie_bp, url_prefix='/api')
 app.register_blueprint(mock_bp, url_prefix='/api') # account for the fake stuff
 
 

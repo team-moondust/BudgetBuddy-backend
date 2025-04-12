@@ -1,8 +1,8 @@
 import os
 import requests
 from flask import Blueprint, jsonify
-
 from dotenv import load_dotenv
+
 load_dotenv()
 
 NESSIE_API_KEY = os.getenv("NESSIE_API_KEY")
