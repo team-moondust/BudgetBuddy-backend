@@ -21,4 +21,4 @@ ENV PORT=8080
 EXPOSE $PORT
 
 # Start the Flask app
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
+CMD ["python", "app.py"]
