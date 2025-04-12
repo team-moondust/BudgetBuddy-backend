@@ -6,7 +6,7 @@ __pycache__/
 .env
 
 # Virtual environment
-venv/
+venv/git
 env/
 ENV/
 

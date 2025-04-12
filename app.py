@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from routes.nessie import nessie_bp
+from tracks.nessie import nessie_bp
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS so frontend can access it
