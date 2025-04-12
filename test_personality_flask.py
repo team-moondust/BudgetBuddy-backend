@@ -10,6 +10,11 @@ spend_history = person['spend_history']
 
 new_spend, recent_spends, big_spends = process_transactions(spend_history)
 
+# print(recent_spends)
+# print()
+# print(big_spends)
+
+
 # First message
 msg = "what can i do to reduce my expenses :("
 payload = {
@@ -19,19 +24,19 @@ payload = {
     "big_spends": big_spends,
     "budget": budget
 }
-response = requests.post("http://127.0.0.1:8080/chat", json=payload)
+response = requests.post("http://127.0.0.1:8080/api/chat", json=payload)
 
 
 
 try:
-    print(response.text)
+    # print(response.text)
     result = response.json()
     print("AI:", result["text"])
     msg = "hmm could you tell me more about overall strategy?"
     payload["chat"] = msg
     payload["history"] = result["history"]
 
-    response = requests.post("http://127.0.0.1:8080/chat", json=payload)
+    response = requests.post("http://127.0.0.1:8080/api/chat", json=payload)
     result = response.json()
     print("AI:", result["text"])
 
