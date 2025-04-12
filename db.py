@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-mongo = None
+mongo = PyMongo()
 
 def init_db(app):
     """
@@ -12,7 +12,7 @@ def init_db(app):
     """
     app.config["MONGO_URI"] = os.getenv("MONGO_URI")
     global mongo
-    mongo = PyMongo(app)
+    mongo.init_app(app)
 
     # testing the connection
     try:

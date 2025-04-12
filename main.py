@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -6,9 +9,8 @@ from tracks.mock_transactions import mock_bp
 from db import init_db, create_user, verify_user, find_user_by_username
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
-from dotenv import load_dotenv
 
-load_dotenv()
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS so frontend can access it
