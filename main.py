@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 # from tracks.nessie import nessie_bp
 from tracks.mock_transactions import mock_bp
-from db import init_db, create_user, update_user, verify_user, find_user_by_email
+from db import init_db, create_user, update_user, verify_user, find_user_by_email, get_transasctions_from_email
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
 from score import (
@@ -97,6 +97,48 @@ def test_get_user():
         return jsonify({"error": "User not found", "success": False}), 404
     return jsonify(user), 200
 
+@app.route('/api/test/transactions', methods=['GET'])
+def test_transactions():
+    """
+    GET endpoint that takes in ?email=... and returns all transactions.
+    """
+    email = request.args.get('email')
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    
+    transactions = get_transasctions_from_email(email)
+    return jsonify(transactions), 200
+
+
+@app.route("/api/onboarding", methods=["POST"])
+def onboarding():
+    data = request.get_json()
+    try:
+        update_user(data.get("email"), {
+            "onboarded": True,
+            "pet_choice": data.get("pet_choice"),
+            "goals": data.get("goals"),
+            "response_style": data.get("response_style"),
+            "monthly_budget": data.get("monthly_budget"),
+        })
+        return jsonify({ "success": True }), 201
+    except:
+        return jsonify({ "success": False }), 500
+
+@app.route("/api/onboarding", methods=["POST"])
+def onboarding():
+    data = request.get_json()
+    try:
+        update_user(data.get("email"), {
+            "onboarded": True,
+            "pet_choice": data.get("pet_choice"),
+            "goals": data.get("goals"),
+            "response_style": data.get("response_style"),
+            "monthly_budget": data.get("monthly_budget"),
+        })
+        return jsonify({ "success": True }), 201
+    except:
+        return jsonify({ "success": False }), 500
 
 @app.route("/api/onboarding", methods=["POST"])
 def onboarding():

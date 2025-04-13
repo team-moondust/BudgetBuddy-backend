@@ -15,9 +15,12 @@ def init_db(app):
     """
     Initialize connection to MongoDB Atlas using Flask-PyMongo.
     """
+    
     app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+    print(os.getenv("MONGO_URI"))
     global mongo
     mongo.init_app(app)
+    print(app.config["MONGO_URI"])
 
     # testing the connection
     try:
@@ -97,11 +100,11 @@ def get_transasctions_from_email(email):
     db = get_db()
     user = db.users.find_one({"email": email})
 
-    if not user or "nessie_customer_id" not in user:
+    if not user or "nessie_id" not in user:
         return {"error": "User or customer ID not found"}
 
 
-    customer_id = user["nessie_customer_id"]
+    customer_id = user["nessie_id"]
 
 
     # Step 1: Get account id for the customer

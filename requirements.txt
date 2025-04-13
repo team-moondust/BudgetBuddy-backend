@@ -3,6 +3,7 @@ requests
 python-dotenv
 flask-cors
 google.generativeai
+google-generativeai
 google-genai
 pandas
 flask_pymongo
