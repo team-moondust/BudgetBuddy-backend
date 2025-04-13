@@ -71,7 +71,8 @@ def make_notification(new_spend, recent_spends, big_spends):
                 "New monitor? You just got a new phone..." - Made too many big purchases for budget
         """
     )
-    print(notification_response.text)
+    # print(notification_response.text)
+    return(notification_response.text)
 
 
 
