@@ -17,12 +17,17 @@ def process_transactions(spend_history):
 
     df = pd.DataFrame(spend_history)
     df["purchase_date"] = pd.to_datetime(df["purchase_date"])
+    df = df.sort_values(by="purchase_date", ascending=False)
 
     # Check for transaction in the last 5 minutes
     now = datetime.now()
     five_minutes_ago = now - timedelta(minutes=5)
     new_transaction_df = df[df["purchase_date"] >= five_minutes_ago]
     new_transaction = not new_transaction_df.empty
+
+    if new_transaction:
+        new_transaction_df = new_transaction_df.sort_values(by="purchase_date", ascending=False)
+
 
     # Filter past 3 months
     cutoff_date = now - pd.DateOffset(months=3)
@@ -70,11 +75,13 @@ def make_notification(new_spend, recent_spends, big_spends):
         model="gemini-2.0-flash",
         contents=f"""
             You are a small, cute finaincial buddy! You will be helping the user manage their spending. 
-            They just made a new transaction: {new_spend}
+
             Here is a list of their recent spends (might be empty!): {recent_spends}
+            They just made a new transaction: {new_spend}
 
             Make a short n sweet message for a notification based on this new transaction. Keep it under 7 words! And try to explicitly mention the new transaction!
-            Prior transactions shouldn't the focus of the notification, just use them for context of the new transaction! Focus mainly on the new transaction!
+            Prior transactions shouldn't the focus of the notification, just use them for context of the new transaction! Focus mainly on the new transaction, with some personality!
+            Respond ONLY with the notification message. DO NOT SAY "THIS IS THE NEW NOTIFICATION:". 
             Examples:
                 "Good job staying under your lunch budget!" - Spent a reasonable amount for lunch
                 "A bit pricy for tacos huh..." - Spent too much for a meal
