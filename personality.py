@@ -117,7 +117,8 @@ def make_notification(new_spend, recent_spends, big_spends, spend_history):
     )
     # print(notification_response.text)
 
-    fraud = detect_fraud(new_spend, spend_history)
+    # fraud = detect_fraud(new_spend, spend_history)
+    fraud = False
     return notification_response.text, fraud
 
 
