@@ -3,6 +3,8 @@ from google import genai
 
 import pandas as pd
 from datetime import datetime, timedelta
+from sklearn.ensemble import IsolationForest
+
 
 """
 process the transactions. Returns 2 strings
@@ -64,9 +66,33 @@ Given a new transaction has been made (a transaction in the previous 5 minutes),
 "A tad expensive, but you've earned it!"
 "New monitor? You just got a new phone..." 
 """
+def detect_fraud(new_spend, spend_history):
+
+    df = pd.DataFrame(spend_history)
+
+    df["purchase_date"] = pd.to_datetime(df["purchase_date"])
+
+    df["hour"] = df["purchase_date"].dt.hour
+    df["dayofweek"] = df["purchase_date"].dt.dayofweek
+
+    X = df[["amount", "hour", "dayofweek"]]
+
+    # Train Isolation Forest
+    model = IsolationForest(contamination=0.05, random_state=18)
+    model.fit(X)
+
+    # Prepare new_spend data
+    new_dt = pd.to_datetime(new_spend["purchase_date"])
+    new_features = [[new_spend["amount"], new_dt.hour, new_dt.dayofweek]]
+
+    # Predict
+    prediction = model.predict(new_features)
+    is_fraud = prediction[0] == -1
+
+    return is_fraud
 
 
-def make_notification(new_spend, recent_spends, big_spends):
+def make_notification(new_spend, recent_spends, big_spends, spend_history):
     gemini_api_key = os.getenv("gemini_api_key")
     client = genai.Client(api_key=gemini_api_key)
 
@@ -90,7 +116,9 @@ def make_notification(new_spend, recent_spends, big_spends):
         """,
     )
     # print(notification_response.text)
-    return notification_response.text
+
+    fraud = detect_fraud(new_spend, spend_history)
+    return notification_response.text, fraud
 
 
 # if __name__ == "__main__":
