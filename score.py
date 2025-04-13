@@ -159,7 +159,38 @@ def explanation_to_score(person):
     return explanation
 
 # -----------------------------
-# 4. Final Aggregator
+# 4. Explanation Generator
+# -----------------------------
+def sentence_for_score(person, score):
+
+    prompt = (
+        "you are a small, cute financial tomagachi, a bit fed up but still caring. "
+        "respond in a lowkey sarcastic yet supportive tone, all lowercase. "
+        f"here's the owner's current score: {score}.\n\n"
+        "respond with a SINGLE, short opener (under 10 words) that sets the tone: "
+        "if the score is high (close to 100), say something positive; "
+        "if the score is low, say something like that offers constructive criticism"
+        "do not mention the actual score, and avoid excessive sarcasm. "
+        "examples: 'we can do better...', 'keep it up!', 'awesome, keep it rolling!', "
+        "'not looking too shabby!', 'c'mon, step it up'"
+        "BE UNIQUE"
+    )
+
+    gemini_api_key = os.getenv("gemini_api_key")
+    client = genai.Client(api_key=gemini_api_key)
+    try:
+        explanation_response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
+        sentence = explanation_response.text.strip()
+    except Exception as e:
+        sentence = "No detailed explanation available due to an API error."
+    
+    return sentence
+
+# -----------------------------
+# 5. Final Aggregator
 # -----------------------------
 def compute_final_score_for_person(person, w_math=0.7, w_llm=0.3):
     """
@@ -194,7 +225,7 @@ def compute_final_score_for_person(person, w_math=0.7, w_llm=0.3):
     return final_score
 
 # -----------------------------
-# 5. Main Function
+# 6. Main Function
 # -----------------------------
 def main():
     # Generate JSON data for 15 people from generate_data.py.
@@ -204,6 +235,7 @@ def main():
     for person in data["people"]:
         final_score = compute_final_score_for_person(person, w_math=0.7, w_llm=0.3)
         explanation = explanation_to_score(person)
+        startup_msg = sentence_for_score(person, final_score)
         results.append({
             "person_id": person["person_id"],
             "email_id": person["email_id"],
@@ -212,7 +244,8 @@ def main():
             "necessary_purchases": person["necessary_purchases"],
             "unnecessary_purchases": person["unnecessary_purchases"],
             "final_score": final_score,
-            "explanation_to_score": explanation
+            "explanation_to_score": explanation,
+            "startup_msg": startup_msg
         })
     
     # Output the final scores with explanations as a JSON string.
