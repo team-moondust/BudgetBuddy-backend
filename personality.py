@@ -32,7 +32,7 @@ def process_transactions(spend_history):
 
     # Format function
     def format_transaction(row):
-        return f"Transaction id: {row['id']} Vendor: {row['vendor_name']} Purchase date: {row['purchase_date'].strftime('%Y-%m-%d %H:%M')}, Transaction amount: {row['amount']}"
+        return f"Transaction id: {row['_id']} Vendor: {row['description']} Purchase date: {row['purchase_date'].strftime('%Y-%m-%d %H:%M')}, Transaction amount: {row['amount']}"
 
     # Apply formatting
     top_90_formatted = "\n".join(top_90_df.apply(format_transaction, axis=1))
