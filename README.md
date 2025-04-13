@@ -1,7 +1,9 @@
 ## Additional github repos:
 
 Front-end repo: https://github.com/team-moondust/BudgetBuddy-frontend
+
 Back-end repo (current): https://github.com/team-moondust/BudgetBuddy-backend
+
 Notification repo: https://github.com/team-moondust/BudgetBuddy-notifications-api
 
 # BudgetBuddy with _Tamagotchi_ Twist 💸
