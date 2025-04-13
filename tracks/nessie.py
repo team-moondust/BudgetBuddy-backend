@@ -146,3 +146,27 @@ def get_purchases_for_account(account_id):
     except requests.exceptions.RequestException as e:
         print(f"Error fetching transactions: {e}")
         return jsonify({"error": "Failed to fetch transactions"}), 500
+
+def fetch_transactions_by_account(account_id):
+    """
+    Helper function to get all transactions for a given account ID from Nessie API.
+    Returns the JSON response or None if an error occurs.
+    """
+    try:
+        url = f"{BASE_URL}/accounts/{account_id}/purchases?key={NESSIE_API_KEY}"
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Failed to fetch transactions for account {account_id}: {e}")
+        return None
+    
+
+# account_id = "67fadcdf9683f20dd519502a"
+# transactions = fetch_transactions_by_account(account_id)
+
+# if transactions:
+#     for txn in transactions:
+#         print(txn)
+# else:
+#     print("No transactions found or API error.")
