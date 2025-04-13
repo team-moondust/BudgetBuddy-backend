@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Transaction</title>
+  </head>
+  <body>
+    <button id="add-transaction-btn">Add Transaction</button>
+
+    <script>
+      const BASE_URL = "https://your-api-endpoint.com/transactions"; // replace with actual API
+
+      document
+        .getElementById("add-transaction-btn")
+        .addEventListener("click", async () => {
+          const merchant = {
+            _id: "123456789",
+            name: "Sample Merchant",
+          };
+
+          const purchase_date = new Date();
+          const amount = 42.0;
+
+          const txn = {
+            merchant_id: merchant._id,
+            medium: "balance",
+            purchase_date: purchase_date
+              .toISOString()
+              .slice(0, 16)
+              .replace("T", " "), // "YYYY-MM-DD HH:MM"
+            amount: amount,
+            description: merchant.name,
+          };
+
+          try {
+            const response = await fetch(BASE_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(txn),
+            });
+
+            if (!response.ok) throw new Error("Network response was not ok");
+
+            const data = await response.json();
+            console.log("Transaction added:", data);
+            alert("Transaction successfully added!");
+          } catch (error) {
+            console.error("Error adding transaction:", error);
+            alert("Failed to add transaction.");
+          }
+        });
+    </script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Transaction</title>
+  </head>
+  <body>
+    <button id="add-transaction-btn">Add Transaction</button>
+
+    <script>
+      document
+        .getElementById("add-transaction-btn")
+        .addEventListener("click", async () => {
+          const merchant = {
+            _id: "123456789",
+            name: "Sample Merchant",
+          };
+
+          const purchase_date = new Date();
+          const amount = 42.0;
+
+          const txn = {
+            merchant_id: merchant._id,
+            medium: "balance",
+            purchase_date: purchase_date
+              .toISOString()
+              .slice(0, 16)
+              .replace("T", " "), // "YYYY-MM-DD HH:MM"
+            amount: amount,
+            description: merchant.name,
+          };
+
+          try {
+            const response = await fetch(BASE_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(txn),
+            });
+
+            if (!response.ok) throw new Error("Network response was not ok");
+
+            const data = await response.json();
+            console.log("Transaction added:", data);
+            alert("Transaction successfully added!");
+          } catch (error) {
+            console.error("Error adding transaction:", error);
+            alert("Failed to add transaction.");
+          }
+        });
+    </script>
+  </body>
+</html>

@@ -189,6 +189,6 @@ def sentence_for_score(person, score):
         )
         sentence = response.text.strip()
     except Exception:
-        sentence = "No detailed explanation available due to an API error."
+        sentence = "Good day to you!"
     
     return sentence
