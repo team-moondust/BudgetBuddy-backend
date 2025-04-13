@@ -74,7 +74,7 @@ def make_notification(new_spend, recent_spends, big_spends):
             Here is a list of their recent spends (might be empty!): {recent_spends}
 
             Make a short n sweet message for a notification based on this new transaction. Keep it under 7 words! And try to explicitly mention the new transaction!
-            Prior transactions shouldn't the focus of the notification, just use them for context of the new transaction! Focus mainly on the new transaction!
+            Prior transactions shouldn't the focus of the notification, just use them for context of the new transaction! Focus mainly on the new transaction, with some personality!
             Respond ONLY with the notification message.
             Examples:
                 "Good job staying under your lunch budget!" - Spent a reasonable amount for lunch
