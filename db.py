@@ -50,6 +50,10 @@ def create_user(name, email, password, nessie_id):
         "password": password,
         "nessie_id": nessie_id,
         "onboarded": False,
+        "pet_choice": -1,
+        "goals": "",
+        "response_style": "",
+        "monthly_budget": -1,
     }
 
     db.users.insert_one(user_data)
