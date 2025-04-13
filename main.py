@@ -114,18 +114,18 @@ def test_get_user():
         return jsonify({"error": "User not found", "success": False}), 404
     return jsonify(user), 200
 
-# @app.route("/api/test/get_account_id", methods=["GET"])
-# def test_get_account_id():
-#     customer_id = request.args.get("customer_id")
+@app.route("/api/test/get_account_id", methods=["GET"])
+def test_get_account_id():
+    customer_id = request.args.get("customer_id")
 
-#     if not customer_id:
-#         return jsonify({"error": "Missing customer_id"}), 400
+    if not customer_id:
+        return jsonify({"error": "Missing customer_id"}), 400
 
-#     try:
-#         account_id = get_account_id_from_customer(customer_id)
-#         return jsonify({"account_id": account_id})
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
+    try:
+        account_id = get_account_id_from_customer(customer_id)
+        return jsonify({"account_id": account_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/test/transactions", methods=["GET"])
 def test_transactions():
@@ -227,6 +227,7 @@ def chat():
     chat_history = data.get("history", [])
     budget = data.get("budget", "")
     response_style = data.get("response_style", "")
+    goals = data.get("goals", "")
 
     user_email = data.get("email", "")
     spend_history = get_transasctions_from_email(user_email)
@@ -245,6 +246,7 @@ def chat():
                 Here are their most recent 10 transactions: {recent_spends}
                 Here are the most recent large transactions: {big_spends}
                 Here's their monthly budget: {budget}
+                Here are their financial goals: {goals}
                 You should respond in relatively short messages, and if you think its necessary, ask clarifying questions. 
                 Respond all lowercase, a bit lowkey, and like a friend showing tough love!
                 If they're doing well for their budget, be proud of them. If they're not doing as well, be a bit sarcastic but still helpful,

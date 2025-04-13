@@ -264,4 +264,4 @@ def generate_realistic_transactions_hard(filepath, account_id):
     
     response = requests.post(BASE_URL, json=txn)
 
-    return response
+    return response.json()
