@@ -53,13 +53,14 @@ def notify(email):
 
 
 while True:
-    result = notify("johndoe@example.com")
+    result = notify("twizz@asdf")
     if result:
+        print(result)
         notification, email = result
 
         emailEncoded = urllib.parse.quote(email)
         person = requests.get(f"http://localhost:8080/api/user?email={emailEncoded}").json()
-        res = requests.post("http://localhost:8080/api/compute_score", data=json.dumps({"email": "johndoe@example.com", "monthly_budget":person["monthly_budget"]}), headers={
+        res = requests.post("http://localhost:8080/api/compute_score", data=json.dumps({"email": "twizz@asdf", "monthly_budget":person["monthly_budget"]}), headers={
             "Content-Type": "application/json"
         }).json()
 
@@ -82,7 +83,8 @@ while True:
 
         jssssson = json.dumps(data)
 
-        requests.post(os.getenv("notification_url"), headers={"Content-Type": "application/json"} , data=jssssson)
+        print(requests.post(os.getenv("notification_url") + "/push", headers={"Content-Type": "application/json"} , data=jssssson))
 
-    time.sleep(5*60)
+    time.sleep(5)
+    print("retrying...")
     
