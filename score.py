@@ -11,28 +11,30 @@ from google import genai
 # -----------------------------
 load_dotenv()   
 
+
 def math_analyzer(transactions, monthly_budget):
     """
     Compute a score (0–100) based on how responsibly the user is spending,
-    taking into account how far we are into the current month.
+    factoring in how far we are into the current month.
 
-    - Score is 100 if spending is under the expected pace for the date.
-    - If spending exceeds expected pace, penalize proportionally.
-    - Resets each month (starts on the 1st).
+    Penalizes more harshly for overspending early in the month.
+
+    Returns:
+        float: Score between 0 (bad) and 100 (great).
     """
     now = datetime.now()
     current_day = now.day
     days_in_month = (datetime(now.year, now.month % 12 + 1, 1) - timedelta(days=1)).day
 
-    # Spending allowed by this point in the month
+    # Time progress: how far we are into the month (0.0 to 1.0)
     time_progress = current_day / days_in_month
     expected_spending = monthly_budget * time_progress
 
-    # Filter current-month transactions only
+    # Filter transactions from the current month
     filtered_transactions = [
         txn for txn in transactions
         if datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M").month == now.month
-           and datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M").year == now.year
+        and datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M").year == now.year
     ]
 
     total_spent = sum(txn["amount"] for txn in filtered_transactions)
@@ -40,11 +42,16 @@ def math_analyzer(transactions, monthly_budget):
     if total_spent <= expected_spending:
         return 100.0
     else:
-        overspend_ratio = (total_spent - expected_spending) / monthly_budget
-        penalty = overspend_ratio * 100
+        overspend = total_spent - expected_spending
+        overspend_ratio = overspend / monthly_budget
+
+        # The earlier it is in the month, the higher this boost
+        early_penalty_multiplier = 1 + ((1 - time_progress) * 2)
+
+        penalty = overspend_ratio * 100 * early_penalty_multiplier
         score = max(0, 100 - penalty)
         return round(score, 2)
-    
+
 # -----------------------------
 # 2. LLM (Gemini) Analyzer Simulation
 # -----------------------------
