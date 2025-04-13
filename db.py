@@ -103,8 +103,10 @@ def add_generated_entries(account_id):
     return transactions
 
 def get_transasctions_from_email(email):
+    print("Email!!", email)
     db = get_db()
     user = db.users.find_one({"email": email})
+    print("User", user)
 
     if not user or "nessie_id" not in user:
         return {"error": "User or customer ID not found"}
