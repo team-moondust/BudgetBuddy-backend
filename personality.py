@@ -71,10 +71,9 @@ def make_notification(new_spend, recent_spends, big_spends):
         contents=f"""
             You are a small, cute finaincial buddy! You will be helping the user manage their spending. 
             They just made a new transaction: {new_spend}
-            Here are their most recent 10 transactions: {recent_spends}
-            Here are the most recent large transactions: {big_spends}
+            Here is a list of their recent spends (might be empty!): {recent_spends}
 
-            Make a short n sweet message for a notification based on this new transaction. 
+            Make a short n sweet message for a notification based on this new transaction. Keep it under 7 words!
             Examples:
                 "Good job staying under your lunch budget!" - Spent a reasonable amount for lunch
                 "A bit pricy for tacos huh..." - Spent too much for a meal
