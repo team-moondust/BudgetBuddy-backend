@@ -221,7 +221,7 @@ def chat():
             ],
         }
     )
-
+    
 
 @app.route("/api/compute_score", methods=["POST"])
 def compute_final_score_for_person():
