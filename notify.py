@@ -80,7 +80,7 @@ while True:
 
         jssssson = json.dumps(data)
 
-        requests.post(os.getenv("notification_url"), data=jssssson)
+        requests.post(os.getenv("notification_url"), headers={"Content-Type": "application/json"} , data=jssssson)
 
     time.sleep(5*60)
     
