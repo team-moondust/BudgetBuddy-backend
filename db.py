@@ -121,7 +121,7 @@ def get_account_id_from_customer(customer_id):
 
 def add_generated_entries(account_id):
     filepath = "tracks/cleaned_merchant_ids_final.txt"
-    transactions = generate_realistic_transactions(filepath, account_id)
+    transactions = generate_realistic_transactions(filepath, account_id, 15 )
     return transactions
 
 def add_generated_entries_one(account_id):

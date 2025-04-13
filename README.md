@@ -1,50 +1,58 @@
-# 🐾 BudgetBuddy with _Tamagotchi_ Twist 💸
+## Additional github repos:
+
+Front-end repo: https://github.com/team-moondust/BudgetBuddy-frontend
+Back-end repo (current): https://github.com/team-moondust/BudgetBuddy-backend
+Notification repo: https://github.com/team-moondust/BudgetBuddy-notifications-api
+
+# BudgetBuddy with _Tamagotchi_ Twist 💸
 
 A gamified financial wellness web app that turns your spending habits into the emotional and physical well-being of a virtual pet companion. Your pet thrives when you stick to your budget and struggles when you overspend or make poor financial decisions — making financial health feel personal, emotional, and fun!
 
 ---
 
-## 📱 Project Overview
+## Project Overview
 
-**Budget Buddy with a Tamagotchi Twist** helps users improve their financial habits through a virtual pet that reacts to spending behaviors. Instead of cold numbers and charts, your financial journey is visualized as the life and growth of your own digital buddy.
+**BudgetBuddy with a Tamagotchi Twist** helps users improve their financial habits through a virtual pet that reacts to spending behaviors. Instead of cold numbers and charts, your financial journey is visualized as the life and growth of your own digital buddy.
 
 ---
 
-## 🎮 Core Features
+## Core Features
 
-# will add later
+### Reactive Pet Companion
 
-### 🐶 Reactive Pet Companion
+- Pet gets sad, sick, or excited based on your real-world spending
+- Visual changes reflect habits like overspending or reaching goals
+- Pet "levels up" as you build better habits
 
-- Pet gets sick, sad, or glows based on your real-world spending
-- Visual changes reflect habits like overspending on takeout or achieving a savings goal
-- Pet "levels up" as your habits improve
+### Smart Notifications
 
-### 📲 Persistent Widget & Notifications
-
-- Home screen widget with current pet mood
-- Push notifications sent as messages _from your pet_ — complete with emotional storytelling
+- Push alerts from your pet with emotional commentary
 - “I’m feeling sluggish from too much takeout this week 😞”
+- LLM-generated feedback that reflects your unique tone preference (supportive, sarcastic, etc.)
 
-### 🎯 Gamification
+### Budget Scoring
 
-- Daily streaks for staying under budget
-- Earn accessories, environments, and rewards for good habits
-- “Feed” your pet with savings deposits, “heal” it by cutting subscriptions
+- Combined score from both machine learning and LLM analysis of your recent spending
+- Real-time feedback on how well you're managing your money
 
-### 👥 Social Elements (optional)
+### Chat Companion
 
-- Pet playdates with friends
-- Financial leaderboard among users
-- Share your pet’s achievements on social media
+- Gemini-powered chatbot lets you talk to your pet about finances
+- Reacts to your spending history, budget, and goals in a personalized way
+
+### Fraud Detection
+
+- Uses IsolationForest ML model to detect abnormal purchases
 
 ---
 
-## 🛠️ Tech Stack (need to update)
+## Tech Stack
 
-| Layer | Tech Used |
-| ----- | --------- |
-
-|
+| Layer    | Technology Used                                                                    |
+| -------- | ---------------------------------------------------------------------------------- |
+| Frontend | React + TypeScript, Vite, Zustand, TanStack Router, styled-components, HTML/CSS/JS |
+| Backend  | Python (Flask), MongoDB Atlas, Nessie API (Capital One)                            |
+| AI & ML  | Google Gemini (chat + analysis), IsolationForest (fraud detection)                 |
+| Data Gen | Python-based custom transaction generator with emotional context                   |
 
 ---
