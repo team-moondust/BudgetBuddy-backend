@@ -34,20 +34,20 @@ init_db(app)
 def register():
     """
     endpoint to register a new user.
-    Expects JSON with 'username', 'email', 'nessie_id', and 'password'.
+    Expects JSON with 'name', 'email', 'nessie_id', and 'password'.
     """
     data = request.get_json()
-    username = data.get("username")
+    name = data.get("name")
     email = data.get("email")
     nessie_id = data.get("nessie_id")
     password = data.get("password")
 
     # Validate input data
-    if not username or not email or not password or not nessie_id:
+    if not name or not email or not password or not nessie_id:
         return jsonify({"error": "Missing required fields."}), 400
 
     # Call create_user from db.py
-    user = create_user(username, email, password, nessie_id)
+    user = create_user(name, email, password, nessie_id)
     return jsonify({"message": "User created", "user": user, "success": True}), 201
 
 
@@ -76,7 +76,7 @@ def test_login():
             200,
         )
     else:
-        return jsonify({"error": "Invalid username or password", "sucesss": False}), 401
+        return jsonify({"error": "Invalid email or password", "success": False}), 401
 
 
 @app.route("/api/user", methods=["GET"])

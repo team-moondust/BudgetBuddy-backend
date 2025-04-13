@@ -37,7 +37,7 @@ def get_db():
     return mongo.db
 
 
-def create_user(username, email, password, nessie_id):
+def create_user(name, email, password, nessie_id):
     """
     Create a new user with the plain text password.
     WARNING: Storing passwords in plain text is insecure.
@@ -45,7 +45,7 @@ def create_user(username, email, password, nessie_id):
     db = get_db()
 
     user_data = {
-        "username": username,
+        "name": name,
         "email": email,
         "password": password,
         "nessie_id": nessie_id,
@@ -58,7 +58,7 @@ def create_user(username, email, password, nessie_id):
 
 def find_user_by_email(email):
     """
-    Retrieve a user document by username.
+    Retrieve a user document by email.
     """
     db = get_db()
     user = db.users.find_one({"email": email})
