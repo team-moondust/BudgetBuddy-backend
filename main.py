@@ -15,7 +15,6 @@ from db import init_db, create_user, update_user, verify_user, find_user_by_emai
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
 from score import (
-    compute_final_score_for_person,
     explanation_to_score,
     sentence_for_score,
 )
@@ -220,6 +219,9 @@ def compute_final_score_for_person():
     email = person.get("email")
     
     transactions = get_transasctions_from_email(email)
+
+    print("lalala")
+    print(transactions)
     
     now = datetime.now()
     cutoff = now - timedelta(days=30)
