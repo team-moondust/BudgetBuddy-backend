@@ -1,4 +1,4 @@
-## Additional github repos:
+## Additional github repos for this project:
 
 Front-end repo: https://github.com/team-moondust/BudgetBuddy-frontend
 
