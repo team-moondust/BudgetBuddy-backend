@@ -84,6 +84,7 @@ def compute_final_score_for_person(email):
     return final_score, explanation, startup_msg, image
 
 
+
 def notify(email):
     out_email = email
     spend_history = get_transasctions_from_email(email)
@@ -99,7 +100,7 @@ def notify(email):
 while True:
     result = notify("marv@dih.com")
     if result:
-        
+
         notification, email = result
         _, _, _ , image_Id = compute_final_score_for_person(email)
 
