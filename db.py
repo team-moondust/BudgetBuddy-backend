@@ -135,7 +135,6 @@ def add_generated_entries_one_hard(account_id):
     return transactions
 
 def get_transasctions_from_email(email):
-    print("Email!!", email)
     db = get_db()
     user = db.users.find_one({"email": email})
     print("User", user)

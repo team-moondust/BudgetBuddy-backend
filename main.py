@@ -114,18 +114,18 @@ def test_get_user():
         return jsonify({"error": "User not found", "success": False}), 404
     return jsonify(user), 200
 
-@app.route("/api/test/get_account_id", methods=["GET"])
-def test_get_account_id():
-    customer_id = request.args.get("customer_id")
+# @app.route("/api/test/get_account_id", methods=["GET"])
+# def test_get_account_id():
+#     customer_id = request.args.get("customer_id")
 
-    if not customer_id:
-        return jsonify({"error": "Missing customer_id"}), 400
+#     if not customer_id:
+#         return jsonify({"error": "Missing customer_id"}), 400
 
-    try:
-        account_id = get_account_id_from_customer(customer_id)
-        return jsonify({"account_id": account_id})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+#     try:
+#         account_id = get_account_id_from_customer(customer_id)
+#         return jsonify({"account_id": account_id})
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/test/transactions", methods=["GET"])
 def test_transactions():
