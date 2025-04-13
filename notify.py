@@ -1,25 +1,19 @@
 from dotenv import load_dotenv
 import time
+
+import urllib
+
+from db import get_transasctions_from_email
 load_dotenv()
 
 import os
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+import requests
 
-from sklearn.ensemble import IsolationForest
 import pandas as pd
 
 # from tracks.nessie import nessie_bp
 from tracks.mock_transactions import mock_bp
-from db import (
-    get_db,
-    init_db,
-    create_user,
-    update_user,
-    verify_user,
-    find_user_by_email,
-    get_transasctions_from_email,
-)
+
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
 from score import (
@@ -43,10 +37,10 @@ def compute_final_score_for_person(email):
     The weights (0.7 and 0.3) should sum to 1.
     """
 
-    db = get_db()
-    person = db.users.find_one({"email": email})
+    emailEncoded = urllib.parse.quote(email)
 
-    transactions = get_transasctions_from_email(email)
+    person = requests.get(f"http://localhost:8080/api/user?email={emailEncoded}").json()
+    transactions = requests.get(f"http://localhost:8080/api/test/transactions?email={emailEncoded}").json()
 
     now = datetime.now()
     cutoff = now - timedelta(days=30)
@@ -83,10 +77,10 @@ def compute_final_score_for_person(email):
 
     return final_score, explanation, startup_msg, image
 
+print(compute_final_score_for_person("johndoe@example.com"))
 
 
 def notify(email):
-    out_email = email
     spend_history = get_transasctions_from_email(email)
     new_spend, recent_spends, big_spends = process_transactions(spend_history)
     if new_spend != "none" and new_spend != previous_new_spend:
@@ -113,7 +107,7 @@ while True:
 
         jssssson = json.dumps(data)
 
-        request.post(os.getenv("notification_url"), data=jssssson)
+        requests.post(os.getenv("notification_url"), data=jssssson)
 
     time.sleep(5*60)
     
