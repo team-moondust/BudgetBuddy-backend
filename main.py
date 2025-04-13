@@ -239,10 +239,24 @@ def compute_final_score_for_person():
     final_score = round((0.7 * score_math) + (0.3 * score_llm))
     explanation = explanation_to_score(person)
     startup_msg = sentence_for_score(person, final_score)
+
+    image = 0
+    if 80 <= final_score <= 100:
+        image = 1
+    elif 60 <= final_score < 80:
+        image = 2
+    elif 40 <= final_score < 60:
+        image = 3
+    elif 20 <= final_score < 40:
+        image = 4
+    else:
+        image = 5
+
     return jsonify(
         {"final_score": final_score,
          "explanation": explanation,
-         "startup_msg": startup_msg
+         "startup_msg": startup_msg,
+         "image": image
          }
         )
 
