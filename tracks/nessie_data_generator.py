@@ -247,4 +247,4 @@ def generate_realistic_transactions(filepath, account_id, num_entries=10):
 
     return transactions
 
-print(generate_realistic_transactions("cleaned_merchant_ids_final.txt", "67fadcdf9683f20dd519502a"))
+# print(generate_realistic_transactions("cleaned_merchant_ids_final.txt", "67fadcdf9683f20dd519502a"))

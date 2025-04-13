@@ -30,6 +30,5 @@ __pycache__/db.cpython-313.pyc
 .gitignore
 __pycache__/generate_data.cpython-313.pyc
 tracks/__pycache__/mock_transactions.cpython-313.pyc
-
-
+tracks/cleaned_merchant_ids_final.txt
 notification_test.py
