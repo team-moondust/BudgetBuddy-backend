@@ -109,37 +109,6 @@ def test_transactions():
     transactions = get_transasctions_from_email(email)
     return jsonify(transactions), 200
 
-
-@app.route("/api/onboarding", methods=["POST"])
-def onboarding():
-    data = request.get_json()
-    try:
-        update_user(data.get("email"), {
-            "onboarded": True,
-            "pet_choice": data.get("pet_choice"),
-            "goals": data.get("goals"),
-            "response_style": data.get("response_style"),
-            "monthly_budget": data.get("monthly_budget"),
-        })
-        return jsonify({ "success": True }), 201
-    except:
-        return jsonify({ "success": False }), 500
-
-@app.route("/api/onboarding", methods=["POST"])
-def onboarding():
-    data = request.get_json()
-    try:
-        update_user(data.get("email"), {
-            "onboarded": True,
-            "pet_choice": data.get("pet_choice"),
-            "goals": data.get("goals"),
-            "response_style": data.get("response_style"),
-            "monthly_budget": data.get("monthly_budget"),
-        })
-        return jsonify({ "success": True }), 201
-    except:
-        return jsonify({ "success": False }), 500
-
 @app.route("/api/onboarding", methods=["POST"])
 def onboarding():
     data = request.get_json()
