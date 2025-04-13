@@ -235,7 +235,7 @@ def compute_final_score_for_person():
         email = person.get("email")
 
         transactions = get_transasctions_from_email(email)
-
+        print(transactions)
         now = datetime.now()
         cutoff = now - timedelta(days=30)
         filtered_transactions = [

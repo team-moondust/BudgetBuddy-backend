@@ -41,10 +41,11 @@ def notify(email):
 
     spend_history = requests.get(f"http://localhost:8080/api/test/transactions?email={emailEncoded}").json()
     
-    # print(spend_history)
+    print(spend_history)
+
 
     new_spend, recent_spends, big_spends = process_transactions(spend_history)
-    if new_spend != "none" and new_spend != previous_new_spend:
+    if new_spend != "" and new_spend != "none" and new_spend != previous_new_spend:
         previous_new_spend = new_spend
         notification = make_notification(new_spend, recent_spends, big_spends)
         return notification, email
