@@ -1,48 +1,30 @@
 from dotenv import load_dotenv
 import time
-
 import urllib
+import requests
+from personality import process_transactions, make_notification
+import json
 
-from db import get_transasctions_from_email
 load_dotenv()
 
-import os
-import requests
-
-import pandas as pd
-
-# from tracks.nessie import nessie_bp
-from tracks.mock_transactions import mock_bp
-
-from personality import process_transactions, make_notification
-import google.generativeai as genai2
-from score import (
-    explanation_to_score,
-    sentence_for_score,
+ACCOUNT_EMAIL = "ragh@g.com"
+BACKEND_URL = "https://budgetbuddy-backend-1060199417258.us-central1.run.app/api"
+NOTIFICATION_URL = (
+    "https://budgetbuddy-notifications-api-1060199417258.us-central1.run.app/"
 )
-from score import gemini_analyze_transactions, math_analyzer
-from tracks.nessie_data_generator import generate_realistic_transactions
-import json
-from datetime import datetime, timedelta
 
-
-
-
-
-
-
-# print("--------------------------------------------------------------------------------------------------")
-
+# deduping
 previous_new_spend = None
 
 def notify(email):
     global previous_new_spend
     emailEncoded = urllib.parse.quote(email)
 
-    spend_history = requests.get(f"http://localhost:8080/api/test/transactions?email={emailEncoded}").json()
-    
-    print(spend_history)
+    spend_history = requests.get(
+        f"{BACKEND_URL}/test/transactions?email={emailEncoded}"
+    ).json()
 
+    print(spend_history)
 
     new_spend, recent_spends, big_spends = process_transactions(spend_history)
     if new_spend != "" and new_spend != "none" and new_spend != previous_new_spend:
@@ -53,39 +35,42 @@ def notify(email):
         return None
 
 
+print("Starting initial attempt...")
 while True:
-    result = notify("twizz@asdf")
+    result = notify(ACCOUNT_EMAIL)
     if result:
         print(result)
         notification, email = result
 
         emailEncoded = urllib.parse.quote(email)
-        person = requests.get(f"http://localhost:8080/api/user?email={emailEncoded}").json()
-        res = requests.post("http://localhost:8080/api/compute_score", data=json.dumps({"email": "twizz@asdf", "monthly_budget":person["monthly_budget"]}), headers={
-            "Content-Type": "application/json"
-        }).json()
 
-        # print(res)
-        # if not res["success"]:
-        #     print("fail")
-        # else:
-        #     print(res["res"])
+        person = requests.get(f"{BACKEND_URL}/user?email={emailEncoded}").json()
+        res = requests.post(
+            "{BACKEND_URL}/compute_score",
+            data=json.dumps(
+                {"email": ACCOUNT_EMAIL, "monthly_budget": person["monthly_budget"]}
+            ),
+            headers={"Content-Type": "application/json"},
+        ).json()
 
         image = res["res"]["image"]
         pet_choice = person["pet_choice"]
 
-        data = {
-            "email": email,
-            "title": "Buddy Checking In!",
-            "body": notification,
-            "imageId": image,
-            "pet_choice": pet_choice
-        }
+        print(
+            requests.post(
+                NOTIFICATION_URL + "/push",
+                headers={"Content-Type": "application/json"},
+                data=json.dumps(
+                    {
+                        "email": email,
+                        "title": "Buddy Checking In!",
+                        "body": notification,
+                        "imageId": image,
+                        "pet_choice": pet_choice,
+                    }
+                ),
+            )
+        )
 
-        jssssson = json.dumps(data)
-
-        print(requests.post(os.getenv("notification_url") + "/push", headers={"Content-Type": "application/json"} , data=jssssson))
-
+    print("Retrying in 5 seconds...")
     time.sleep(5)
-    print("retrying...")
-    
