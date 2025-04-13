@@ -146,7 +146,9 @@ def onboarding():
 @app.route("/api/notify", methods=["POST"])
 def notify():
     data = request.get_json()
-    spend_history = data.get("spend_history", [])
+    email = data.get("email", "")
+
+    spend_history = get_transasctions_from_email(email)
 
     new_spend, recent_spends, big_spends = process_transactions(spend_history)
 
