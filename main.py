@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 # from tracks.nessie import nessie_bp
 from tracks.mock_transactions import mock_bp
-from db import init_db, create_user, verify_user, find_user_by_email
+from db import init_db, create_user, verify_user, find_user_by_email, get_transasctions_from_email
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
 from score import (
@@ -96,6 +96,18 @@ def test_get_user():
     if not user:
         return jsonify({"error": "User not found", "success": False}), 404
     return jsonify(user), 200
+
+@app.route('/api/test/transactions', methods=['GET'])
+def test_transactions():
+    """
+    GET endpoint that takes in ?email=... and returns all transactions.
+    """
+    email = request.args.get('email')
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    
+    transactions = get_transasctions_from_email(email)
+    return jsonify(transactions), 200
 
 
 @app.route("/api/notify", methods=["POST"])
