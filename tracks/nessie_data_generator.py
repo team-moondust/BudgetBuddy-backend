@@ -248,3 +248,20 @@ def generate_realistic_transactions(filepath, account_id, num_entries=10):
     return transactions
 
 #print(generate_realistic_transactions("cleaned_merchant_ids_final.txt", "67fb242d9683f20dd51955a2"))
+
+def generate_realistic_transactions_hard(filepath, account_id):
+    NESSIE_API_KEY = os.getenv("NESSIE_API_KEY")
+
+    BASE_URL = f"http://api.nessieisreal.com/accounts/{account_id}/purchases?key={NESSIE_API_KEY}"
+
+    txn = {
+        "merchant_id": "57cf75cea73e494d8675edca",
+        "medium": "balance",
+        "purchase_date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "amount": 12.45,
+        "description": "Taco Bell"
+    }
+    
+    response = requests.post(BASE_URL, json=txn)
+
+    return response

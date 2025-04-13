@@ -18,6 +18,10 @@ from db import (
     verify_user,
     find_user_by_email,
     get_transasctions_from_email,
+    add_generated_entries,
+    add_generated_entries_one,
+    add_generated_entries_one_hard,
+    get_account_id_from_customer
 )
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
@@ -110,6 +114,18 @@ def test_get_user():
         return jsonify({"error": "User not found", "success": False}), 404
     return jsonify(user), 200
 
+@app.route("/api/test/get_account_id", methods=["GET"])
+def test_get_account_id():
+    customer_id = request.args.get("customer_id")
+
+    if not customer_id:
+        return jsonify({"error": "Missing customer_id"}), 400
+
+    try:
+        account_id = get_account_id_from_customer(customer_id)
+        return jsonify({"account_id": account_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/test/transactions", methods=["GET"])
 def test_transactions():
@@ -122,6 +138,51 @@ def test_transactions():
 
     transactions = get_transasctions_from_email(email)
     return jsonify(transactions), 200
+
+# generate multiple entries and add to transactions
+@app.route("/api/test/generate_entries", methods=["POST"])
+def generate_entries():
+    data = request.get_json()
+    account_id = data.get("account_id")
+
+    if not account_id:
+        return jsonify({"error": "Missing account_id"}), 400
+
+    try:
+        generated = add_generated_entries(account_id)
+        return jsonify({"success": True, "transactions": generated})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# generate multiple entries and add to transactions
+@app.route("/api/test/generate_entries_one", methods=["POST"])
+def generate_entries_one():
+    data = request.get_json()
+    account_id = data.get("account_id")
+
+    if not account_id:
+        return jsonify({"error": "Missing account_id"}), 400
+
+    try:
+        generated = add_generated_entries_one(account_id)
+        return jsonify({"success": True, "transactions": generated})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+# generate multiple entries and add to transactions
+@app.route("/api/test/generate_entries_one_hard", methods=["POST"])
+def generate_entries_one_hard():
+    data = request.get_json()
+    account_id = data.get("account_id")
+
+    if not account_id:
+        return jsonify({"error": "Missing account_id"}), 400
+
+    try:
+        generated = add_generated_entries_one_hard(account_id)
+        return jsonify({"success": True, "transactions": generated})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/onboarding", methods=["POST"])

@@ -2,7 +2,7 @@ import os
 import requests
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
-from tracks.nessie_data_generator import generate_realistic_transactions
+from tracks.nessie_data_generator import generate_realistic_transactions, generate_realistic_transactions_hard
 
 load_dotenv()
 
@@ -97,9 +97,41 @@ def update_user(email, updates: dict):
 
     return find_user_by_email(email)
 
+
+# functions related to nessie
+# -----------------------------------------------------------------------------------------------
+def get_account_id_from_customer(customer_id):
+    """
+    Returns the account ID for the given customer ID.
+    Assumes the customer has exactly one account.
+    """
+    url = f"{BASE_URL}/customers/{customer_id}/accounts?key={NESSIE_API_KEY}"
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch accounts: {response.text}")
+
+    accounts = response.json()
+    
+    if not accounts:
+        raise Exception("No accounts found for this customer.")
+    
+    return accounts[0]["_id"]
+
+
 def add_generated_entries(account_id):
     filepath = "tracks/cleaned_merchant_ids_final.txt"
     transactions = generate_realistic_transactions(filepath, account_id)
+    return transactions
+
+def add_generated_entries_one(account_id):
+    filepath = "tracks/cleaned_merchant_ids_final.txt"
+    transactions = generate_realistic_transactions(filepath, account_id, 1)
+    return transactions
+
+def add_generated_entries_one_hard(account_id):
+    filepath = "tracks/cleaned_merchant_ids_final.txt"
+    transactions = generate_realistic_transactions_hard(filepath, account_id)
     return transactions
 
 def get_transasctions_from_email(email):
