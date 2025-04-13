@@ -7,7 +7,7 @@ import json
 
 load_dotenv()
 
-ACCOUNT_EMAIL = "ragh@g.com"
+ACCOUNT_EMAIL = "abc"
 BACKEND_URL = "https://budgetbuddy-backend-1060199417258.us-central1.run.app/api"
 NOTIFICATION_URL = (
     "https://budgetbuddy-notifications-api-1060199417258.us-central1.run.app/"
@@ -46,7 +46,7 @@ while True:
 
         person = requests.get(f"{BACKEND_URL}/user?email={emailEncoded}").json()
         res = requests.post(
-            "{BACKEND_URL}/compute_score",
+            f"{BACKEND_URL}/compute_score",
             data=json.dumps(
                 {"email": ACCOUNT_EMAIL, "monthly_budget": person["monthly_budget"]}
             ),
