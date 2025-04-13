@@ -146,10 +146,12 @@ def chat():
     data = request.get_json()
     msg = data.get("chat", "")
     chat_history = data.get("history", [])
-    recent_spends = data.get("recent_spends", [])
-    big_spends = data.get("big_spends", [])
     budget = data.get("budget", "")
     response_style = data.get("response_style", "")
+
+    user_email = data.get("email", "")
+    spend_history = get_transasctions_from_email(user_email)
+    new_spend, recent_spends , big_spends = process_transactions(spend_history)
 
     genai2.configure(api_key=os.getenv("gemini_api_key"))
 
