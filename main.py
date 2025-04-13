@@ -1,9 +1,16 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 #from tracks.nessie import nessie_bp
 from tracks.mock_transactions import mock_bp
 from db import init_db, create_user, verify_user, find_user_by_username
+from personality import process_transactions, make_notification
+import google.generativeai as genai2
+from score import compute_final_score_for_person, explanation_to_score, sentence_for_score
+
 
 
 app = Flask(__name__)
@@ -15,11 +22,9 @@ init_db(app)
 
 # Register blueprint
 # app.register_blueprint(nessie_bp, url_prefix='/api')
-app.register_blueprint(mock_bp, url_prefix='/api') # account for the fake stuff
+# app.register_blueprint(mock_bp, url_prefix='/api') # account for the fake stuff
 
-# --- Temporary endpoints for testing user functions ---
-
-@app.route('/api/test/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def test_register():
     """
     Test endpoint to register a new user.
@@ -38,7 +43,7 @@ def test_register():
     user_id = create_user(username, email, password)
     return jsonify({"message": "User created", "user_id": str(user_id)}), 201
 
-@app.route('/api/test/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def test_login():
     """
     Test endpoint to verify user credentials.
@@ -56,7 +61,7 @@ def test_login():
     else:
         return jsonify({"error": "Invalid username or password"}), 401
 
-@app.route('/api/test/user', methods=['GET'])
+@app.route('/api/user', methods=['GET'])
 def test_get_user():
     """
     Test endpoint to retrieve a user's details.
@@ -74,13 +79,7 @@ def test_get_user():
     user['_id'] = str(user['_id'])
     return jsonify(user), 200
 
-
-from personality import process_transactions, make_notification
-import google.generativeai as genai2
-import os
-
-
-@app.route('/notify', methods=['POST'])
+@app.route('/api/notify', methods=['POST'])
 def notify():
     data = request.get_json()
     spend_history = data.get("spend_history", [])
@@ -91,10 +90,10 @@ def notify():
         notification = make_notification(new_spend, recent_spends, big_spends)
         return jsonify({"notification": notification})
     else:
-        return jsonify({"notification": "No new transactions."})
+        return jsonify({"notification": "No new transactions. Good Job!"})
 
 
-@app.route('/chat', methods=['POST'])
+@app.route('/api/chat', methods=['POST'])
 def chat():
     data = request.get_json()
     msg = data.get('chat', '')
@@ -125,8 +124,8 @@ def chat():
     }
 
     # Check if the system prompt is already in the history, insert it
-    if not chat_history:
-        chat_history.insert(0, system_prompt)
+    # if not chat_history:
+    chat_history.insert(0, system_prompt)
     
     model = genai2.GenerativeModel(model_name="gemini-2.0-flash")
     chat_session = model.start_chat(history=chat_history)
@@ -144,6 +143,35 @@ def chat():
     ]
     })
 
+@app.route('/api/compute_score', methods=['POST'])
+def compute_score():
+    """
+    Expects JSON payload with the following keys:
+      - email_id 
+      - person_id 
+      - spend_history: list of transaction objects
+      - necessary_purchases: string
+      - unnecessary_purchases: string
+      - budget: integer (monthly budget)
+    
+    Returns a JSON with the computed final score, an explanation, and a startup_msg.
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid or missing JSON payload."}), 400
+
+    try:
+        final_score = compute_final_score_for_person(data, w_math=0.7, w_llm=0.3)
+        explanation = explanation_to_score(data)
+        startup_msg = sentence_for_score(data, final_score)
+    except Exception as e:
+        return jsonify({"error": f"Score calculation failed: {str(e)}"}), 500
+    
+    return jsonify({
+        "final_score": final_score,
+        "explanation": explanation,
+        "intro_msg": startup_msg
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
