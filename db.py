@@ -2,6 +2,7 @@ import os
 import requests
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
+from tracks.nessie_data_generator import generate_realistic_transactions
 
 load_dotenv()
 
@@ -39,6 +40,16 @@ def get_db():
         raise Exception("DB not initialized. Call init_db(app) first.")
     return mongo.db
 
+def find_user_by_email(email):
+    """
+    Retrieve a user document by email.
+    """
+    db = get_db()
+    user = db.users.find_one({"email": email})
+    if user:
+        user["_id"] = str(user["_id"])
+        return user
+    return None
 
 def create_user(name, email, password, nessie_id):
     """
@@ -46,6 +57,7 @@ def create_user(name, email, password, nessie_id):
     WARNING: Storing passwords in plain text is insecure.
     """
     db = get_db()
+
 
     user_data = {
         "name": name,
@@ -63,18 +75,6 @@ def create_user(name, email, password, nessie_id):
     return find_user_by_email(email)
 
 
-def find_user_by_email(email):
-    """
-    Retrieve a user document by email.
-    """
-    db = get_db()
-    user = db.users.find_one({"email": email})
-    if user:
-        user["_id"] = str(user["_id"])
-        return user
-    return None
-
-
 def verify_user(email, password):
     """
     Verify the user credentials by comparing plain text passwords.
@@ -83,6 +83,24 @@ def verify_user(email, password):
     if not user:
         return False
     return user["password"] == password
+
+def update_user(email, updates: dict):
+    """
+    Update an existing user's fields (no password hashing for demo purposes).
+    """
+    db = get_db()
+
+    result = db.users.update_one({"email": email}, {"$set": updates})
+
+    if result.matched_count == 0:
+        raise ValueError("User not found.")
+
+    return find_user_by_email(email)
+
+def add_generated_entries(account_id):
+    filepath = "tracks/cleaned_merchant_ids_final.txt"
+    transactions = generate_realistic_transactions(filepath, account_id)
+    return transactions
 
 def get_transasctions_from_email(email):
     db = get_db()

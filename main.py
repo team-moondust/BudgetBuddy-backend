@@ -6,9 +6,12 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+from sklearn.ensemble import IsolationForest
+import pandas as pd
+
 # from tracks.nessie import nessie_bp
 from tracks.mock_transactions import mock_bp
-from db import init_db, create_user, verify_user, find_user_by_email, get_transasctions_from_email
+from db import init_db, create_user, update_user, verify_user, find_user_by_email, get_transasctions_from_email
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
 from score import (
@@ -113,6 +116,20 @@ def test_transactions():
     transactions = get_transasctions_from_email(email)
     return jsonify(transactions), 200
 
+@app.route("/api/onboarding", methods=["POST"])
+def onboarding():
+    data = request.get_json()
+    try:
+        update_user(data.get("email"), {
+            "onboarded": True,
+            "pet_choice": data.get("pet_choice"),
+            "goals": data.get("goals"),
+            "response_style": data.get("response_style"),
+            "monthly_budget": data.get("monthly_budget"),
+        })
+        return jsonify({ "success": True }), 201
+    except:
+        return jsonify({ "success": False }), 500
 
 @app.route("/api/notify", methods=["POST"])
 def notify():
@@ -133,10 +150,14 @@ def chat():
     data = request.get_json()
     msg = data.get("chat", "")
     chat_history = data.get("history", [])
-    recent_spends = data.get("recent_spends", [])
-    big_spends = data.get("big_spends", [])
     budget = data.get("budget", "")
     response_style = data.get("response_style", "")
+
+    user_email = data.get("email", "")
+    spend_history = get_transasctions_from_email(user_email)
+
+    print(spend_history)
+    new_spend, recent_spends , big_spends = process_transactions(spend_history)
 
     genai2.configure(api_key=os.getenv("gemini_api_key"))
 
@@ -151,15 +172,16 @@ def chat():
                 Here are the most recent large transactions: {big_spends}
                 Here's their monthly budget: {budget}
                 You should respond in relatively short messages, and if you think its necessary, ask clarifying questions. 
-                Respond in a playful way, all lowercase, and a bit lowkey, like you're just the tiniest bit fed up!
-                If they're doing well for their budget, be proud of them (but only show it a bit). If they're not doing as well, be a bit sarcastic but still helpful,
-                making sure to help them through their budget woes. 
+                Respond all lowercase, a bit lowkey, and like a friend showing tough love!
+                If they're doing well for their budget, be proud of them. If they're not doing as well, be a bit sarcastic but still helpful,
+                making sure to help them through their budget woes.
                     examples:
                         "Good job staying under your lunch budget!" 
                         "A bit pricy for tacos huh..." 
                         "A tad expensive, but you've earned it!"
                         "New monitor? But you just got a new phone..." 
             Also take these output style guides into consideration (if the user wants you to be more gentle, more sarcastic, etc):
+                Be direct when answering user questions, don't beat around the bush. You should aim to be helpful. 
                 {response_style}
             """
             }
@@ -223,6 +245,43 @@ def compute_final_score_for_person():
          "startup_msg": startup_msg
          }
         )
+
+@app.route("/api/fraud", methods=["POST"])
+def detect_fraud():
+
+    data = request.get_json()
+    user_email = data.get("email")
+
+    spend_history = get_transasctions_from_email(user_email)
+    new_spend, _ , _ = process_transactions(spend_history)
+
+    df = pd.DataFrame(spend_history)
+
+    df['purchase_date'] = pd.to_datetime(df['purchase_date'])
+
+    df['hour'] = df['purchase_date'].dt.hour
+    df['dayofweek'] = df['purchase_date'].dt.dayofweek
+
+    X = df[['amount', 'hour', 'dayofweek']]
+
+    # Train Isolation Forest
+    model = IsolationForest(contamination=0.05, random_state=18)
+    model.fit(X)
+
+    # Prepare new_spend data
+    new_dt = pd.to_datetime(new_spend['purchase_date'])
+    new_features = [[
+        new_spend['amount'],
+        new_dt.hour,
+        new_dt.dayofweek
+    ]]
+
+    # Predict
+    prediction = model.predict(new_features) 
+    is_fraud = prediction[0] == -1
+
+    return is_fraud
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
