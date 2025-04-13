@@ -14,7 +14,6 @@ new_spend, recent_spends, big_spends = process_transactions(spend_history)
 # print()
 # print(big_spends)
 
-
 # First message
 msg = "what can i do to reduce my expenses :("
 payload = {
