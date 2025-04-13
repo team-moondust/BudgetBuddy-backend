@@ -151,6 +151,8 @@ def chat():
 
     user_email = data.get("email", "")
     spend_history = get_transasctions_from_email(user_email)
+
+    print(spend_history)
     new_spend, recent_spends , big_spends = process_transactions(spend_history)
 
     genai2.configure(api_key=os.getenv("gemini_api_key"))
