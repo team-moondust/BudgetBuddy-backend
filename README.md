@@ -8,6 +8,8 @@ Notification repo: https://github.com/team-moondust/BudgetBuddy-notifications-ap
 
 # BudgetBuddy with _Tamagotchi_ Twist 💸
 
+# "Because your finances deserve a little fun."
+
 A gamified financial wellness web app that turns your spending habits into the emotional and physical well-being of a virtual pet companion. Your pet thrives when you stick to your budget and struggles when you overspend or make poor financial decisions — making financial health feel personal, emotional, and fun!
 
 ---
