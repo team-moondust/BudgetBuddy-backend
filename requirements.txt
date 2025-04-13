@@ -7,4 +7,3 @@ google-generativeai
 google-genai
 pandas
 flask_pymongo
-scikit-learn
