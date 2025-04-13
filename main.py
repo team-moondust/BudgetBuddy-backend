@@ -16,6 +16,10 @@ from score import (
     explanation_to_score,
     sentence_for_score,
 )
+from score import gemini_analyze_transactions, math_analyzer
+from tracks.nessie_data_generator import generate_realistic_transactions
+import json
+from datetime import datetime, timedelta
 
 
 app = Flask(__name__)
@@ -183,37 +187,42 @@ def chat():
 
 
 @app.route("/api/compute_score", methods=["POST"])
-def compute_score():
+def compute_final_score_for_person():
     """
-    Expects JSON payload with the following keys:
-      - email_id
-      - person_id
-      - spend_history: list of transaction objects
-      - necessary_purchases: string
-      - unnecessary_purchases: string
-      - budget: integer (monthly budget)
-
-    Returns a JSON with the computed final score, an explanation, and a startup_msg.
+    Compute the final financial health score for a person by combining:
+      - A math analyzer score (for the past 30 days of transactions)
+      - An LLM analyzer (Gemini) score on the same data.
+    The weights (0.7 and 0.3) should sum to 1.
     """
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid or missing JSON payload."}), 400
-
-    try:
-        final_score = compute_final_score_for_person(data, w_math=0.7, w_llm=0.3)
-        explanation = explanation_to_score(data)
-        startup_msg = sentence_for_score(data, final_score)
-    except Exception as e:
-        return jsonify({"error": f"Score calculation failed: {str(e)}"}), 500
-
+    person = request.get_json()
+    email = person.get("email")
+    
+    transactions = get_transasctions_from_email(email)
+    
+    now = datetime.now()
+    cutoff = now - timedelta(days=30)
+    filtered_transactions = [
+        txn for txn in transactions
+        if datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M") >= cutoff
+    ]
+    
+    monthly_budget = person.get("monthly_budget", 0)
+    score_math = math_analyzer(filtered_transactions, monthly_budget)
+    
+    # Update the person dict with the filtered spend_history.
+    person_filtered = person.copy()
+    person_filtered["spend_history"] = filtered_transactions
+    score_llm = gemini_analyze_transactions(person_filtered)
+    
+    final_score = round((0.7 * score_math) + (0.3 * score_llm))
+    explanation = explanation_to_score(person)
+    startup_msg = sentence_for_score(person, final_score)
     return jsonify(
-        {
-            "final_score": final_score,
-            "explanation": explanation,
-            "intro_msg": startup_msg,
-        }
-    )
-
+        {"final_score": final_score,
+         "explanation": explanation,
+         "startup_msg": startup_msg
+         }
+        )
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
