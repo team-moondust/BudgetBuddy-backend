@@ -2,6 +2,7 @@ import os
 import requests
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
+from tracks.nessie_data_generator import generate_realistic_transactions
 
 load_dotenv()
 
@@ -95,6 +96,11 @@ def update_user(email, updates: dict):
         raise ValueError("User not found.")
 
     return find_user_by_email(email)
+
+def add_generated_entries(account_id):
+    filepath = "tracks/cleaned_merchant_ids_final.txt"
+    transactions = generate_realistic_transactions(filepath, account_id)
+    return transactions
 
 def get_transasctions_from_email(email):
     db = get_db()
