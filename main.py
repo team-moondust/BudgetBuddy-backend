@@ -278,13 +278,14 @@ def compute_final_score_for_person():
                     "image": image,
                 },
             }
-        )
-    except:
+        ), 200
+    except Exception as err:
         return jsonify(
             {
                 "success": False,
+                "error": str(err)
             }
-        )
+        ), 500
 
 
 @app.route("/api/fraud", methods=["POST"])
