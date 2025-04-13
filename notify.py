@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 
 
 
-print("--------------------------------------------------------------------------------------------------")
+# print("--------------------------------------------------------------------------------------------------")
 
 previous_new_spend = None
 
@@ -41,7 +41,7 @@ def notify(email):
 
     spend_history = requests.get(f"http://localhost:8080/api/test/transactions?email={emailEncoded}").json()
     
-    print(spend_history)
+    # print(spend_history)
 
     new_spend, recent_spends, big_spends = process_transactions(spend_history)
     if new_spend != "none" and new_spend != previous_new_spend:
@@ -70,12 +70,14 @@ while True:
         #     print(res["res"])
 
         image = res["res"]["image"]
+        pet_choice = person["pet_choice"]
 
         data = {
             "email": email,
             "title": "Buddy Checking In!",
             "body": notification,
             "imageId": image,
+            "pet_choice": pet_choice
         }
 
         jssssson = json.dumps(data)
