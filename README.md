@@ -23,14 +23,13 @@ A gamified financial wellness web app that turns your spending habits into the e
 ### Reactive Pet Companion
 
 - Pet gets sad, sick, or excited based on your real-world spending
-- Visual changes reflect habits like overspending or reaching goals
-- Pet "levels up" as you build better habits
+- Visual and mood changes reflect financial habits like overspending or reaching milestones
 
 ### Smart Notifications
 
-- Push alerts from your pet with emotional commentary
+- Push alerts from your pet with snarky commentary about transactions
 - “I’m feeling sluggish from too much takeout this week 😞”
-- LLM-generated feedback that reflects your unique tone preference (supportive, sarcastic, etc.)
+- Custom generated feedback that reflects your unique tone preference (supportive, sarcastic, etc.)
 
 ### Budget Scoring
 
@@ -39,8 +38,8 @@ A gamified financial wellness web app that turns your spending habits into the e
 
 ### Chat Companion
 
-- Gemini-powered chatbot lets you talk to your pet about finances
-- Reacts to your spending history, budget, and goals in a personalized way
+- Gemini-powered chatbot lets your pet talk about your finances
+- Reacts to your spending history, budget, and goals in a personalized way!
 
 ### Fraud Detection
 
