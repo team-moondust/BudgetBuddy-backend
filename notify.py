@@ -34,7 +34,7 @@ def notify(email):
     if new_spend != "" and new_spend != "none" and new_spend != previous_new_spend:
         previous_new_spend = new_spend
         notification, fraud = make_notification(new_spend, recent_spends, big_spends, spend_history)
-        return notification, email
+        return notification, email, fraud
     else:
         return None
 
@@ -44,7 +44,7 @@ while True:
     result = notify(ACCOUNT_EMAIL)
     if result:
         print(result)
-        notification, email = result
+        notification, email, fraud = result
 
         emailEncoded = urllib.parse.quote(email)
 
