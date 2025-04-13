@@ -17,12 +17,17 @@ def process_transactions(spend_history):
 
     df = pd.DataFrame(spend_history)
     df["purchase_date"] = pd.to_datetime(df["purchase_date"])
+    df = df.sort_values(by="purchase_date", ascending=False)
 
     # Check for transaction in the last 5 minutes
     now = datetime.now()
     five_minutes_ago = now - timedelta(minutes=5)
     new_transaction_df = df[df["purchase_date"] >= five_minutes_ago]
     new_transaction = not new_transaction_df.empty
+
+    if new_transaction:
+        new_transaction_df = new_transaction_df.sort_values(by="purchase_date", ascending=False)
+
 
     # Filter past 3 months
     cutoff_date = now - pd.DateOffset(months=3)
@@ -70,7 +75,7 @@ def make_notification(new_spend, recent_spends, big_spends):
         model="gemini-2.0-flash",
         contents=f"""
             You are a small, cute finaincial buddy! You will be helping the user manage their spending. 
-            
+
             Here is a list of their recent spends (might be empty!): {recent_spends}
             They just made a new transaction: {new_spend}
 
