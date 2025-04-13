@@ -11,7 +11,14 @@ import pandas as pd
 
 # from tracks.nessie import nessie_bp
 from tracks.mock_transactions import mock_bp
-from db import init_db, create_user, update_user, verify_user, find_user_by_email, get_transasctions_from_email
+from db import (
+    init_db,
+    create_user,
+    update_user,
+    verify_user,
+    find_user_by_email,
+    get_transasctions_from_email,
+)
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
 from score import (
@@ -103,32 +110,38 @@ def test_get_user():
         return jsonify({"error": "User not found", "success": False}), 404
     return jsonify(user), 200
 
-@app.route('/api/test/transactions', methods=['GET'])
+
+@app.route("/api/test/transactions", methods=["GET"])
 def test_transactions():
     """
     GET endpoint that takes in ?email=... and returns all transactions.
     """
-    email = request.args.get('email')
+    email = request.args.get("email")
     if not email:
         return jsonify({"error": "Email is required"}), 400
-    
+
     transactions = get_transasctions_from_email(email)
     return jsonify(transactions), 200
+
 
 @app.route("/api/onboarding", methods=["POST"])
 def onboarding():
     data = request.get_json()
     try:
-        update_user(data.get("email"), {
-            "onboarded": True,
-            "pet_choice": data.get("pet_choice"),
-            "goals": data.get("goals"),
-            "response_style": data.get("response_style"),
-            "monthly_budget": data.get("monthly_budget"),
-        })
-        return jsonify({ "success": True }), 201
+        update_user(
+            data.get("email"),
+            {
+                "onboarded": True,
+                "pet_choice": data.get("pet_choice"),
+                "goals": data.get("goals"),
+                "response_style": data.get("response_style"),
+                "monthly_budget": data.get("monthly_budget"),
+            },
+        )
+        return jsonify({"success": True}), 201
     except:
-        return jsonify({ "success": False }), 500
+        return jsonify({"success": False}), 500
+
 
 @app.route("/api/notify", methods=["POST"])
 def notify():
@@ -156,7 +169,7 @@ def chat():
     spend_history = get_transasctions_from_email(user_email)
 
     print(spend_history)
-    new_spend, recent_spends , big_spends = process_transactions(spend_history)
+    new_spend, recent_spends, big_spends = process_transactions(spend_history)
 
     genai2.configure(api_key=os.getenv("gemini_api_key"))
 
@@ -217,36 +230,49 @@ def compute_final_score_for_person():
     """
     person = request.get_json()
     email = person.get("email")
-    
+
     transactions = get_transasctions_from_email(email)
 
-    print("lalala")
-    print(transactions)
-    
     now = datetime.now()
     cutoff = now - timedelta(days=30)
     filtered_transactions = [
-        txn for txn in transactions
+        txn
+        for txn in transactions
         if datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M") >= cutoff
     ]
-    
+
     monthly_budget = person.get("monthly_budget", 0)
     score_math = math_analyzer(filtered_transactions, monthly_budget)
-    
+
     # Update the person dict with the filtered spend_history.
     person_filtered = person.copy()
     person_filtered["spend_history"] = filtered_transactions
     score_llm = gemini_analyze_transactions(person_filtered)
-    
+
     final_score = round((0.7 * score_math) + (0.3 * score_llm))
     explanation = explanation_to_score(person)
     startup_msg = sentence_for_score(person, final_score)
+
+    image = 0
+    if 80 <= final_score <= 100:
+        image = 1
+    elif 60 <= final_score < 80:
+        image = 2
+    elif 40 <= final_score < 60:
+        image = 3
+    elif 20 <= final_score < 40:
+        image = 4
+    else:
+        image = 5
+
     return jsonify(
         {"final_score": final_score,
          "explanation": explanation,
-         "startup_msg": startup_msg
+         "startup_msg": startup_msg,
+         "image": image
          }
         )
+
 
 @app.route("/api/fraud", methods=["POST"])
 def detect_fraud():
@@ -255,31 +281,27 @@ def detect_fraud():
     user_email = data.get("email")
 
     spend_history = get_transasctions_from_email(user_email)
-    new_spend, _ , _ = process_transactions(spend_history)
+    new_spend, _, _ = process_transactions(spend_history)
 
     df = pd.DataFrame(spend_history)
 
-    df['purchase_date'] = pd.to_datetime(df['purchase_date'])
+    df["purchase_date"] = pd.to_datetime(df["purchase_date"])
 
-    df['hour'] = df['purchase_date'].dt.hour
-    df['dayofweek'] = df['purchase_date'].dt.dayofweek
+    df["hour"] = df["purchase_date"].dt.hour
+    df["dayofweek"] = df["purchase_date"].dt.dayofweek
 
-    X = df[['amount', 'hour', 'dayofweek']]
+    X = df[["amount", "hour", "dayofweek"]]
 
     # Train Isolation Forest
     model = IsolationForest(contamination=0.05, random_state=18)
     model.fit(X)
 
     # Prepare new_spend data
-    new_dt = pd.to_datetime(new_spend['purchase_date'])
-    new_features = [[
-        new_spend['amount'],
-        new_dt.hour,
-        new_dt.dayofweek
-    ]]
+    new_dt = pd.to_datetime(new_spend["purchase_date"])
+    new_features = [[new_spend["amount"], new_dt.hour, new_dt.dayofweek]]
 
     # Predict
-    prediction = model.predict(new_features) 
+    prediction = model.predict(new_features)
     is_fraud = prediction[0] == -1
 
     return is_fraud
