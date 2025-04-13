@@ -1,16 +1,21 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-#from tracks.nessie import nessie_bp
+
+# from tracks.nessie import nessie_bp
 from tracks.mock_transactions import mock_bp
-from db import init_db, create_user, verify_user, find_user_by_username
+from db import init_db, create_user, verify_user, find_user_by_email
 from personality import process_transactions, make_notification
 import google.generativeai as genai2
-from score import compute_final_score_for_person, explanation_to_score, sentence_for_score
-
+from score import (
+    compute_final_score_for_person,
+    explanation_to_score,
+    sentence_for_score,
+)
 
 
 app = Flask(__name__)
@@ -24,62 +29,76 @@ init_db(app)
 # app.register_blueprint(nessie_bp, url_prefix='/api')
 # app.register_blueprint(mock_bp, url_prefix='/api') # account for the fake stuff
 
-@app.route('/api/register', methods=['POST'])
-def test_register():
+
+@app.route("/api/register", methods=["POST"])
+def register():
     """
-    Test endpoint to register a new user.
-    Expects JSON with 'username', 'email', and 'password'.
+    endpoint to register a new user.
+    Expects JSON with 'username', 'email', 'nessie_id', and 'password'.
     """
     data = request.get_json()
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    
+    username = data.get("username")
+    email = data.get("email")
+    nessie_id = data.get("nessie_id")
+    password = data.get("password")
+
     # Validate input data
-    if not username or not email or not password:
+    if not username or not email or not password or not nessie_id:
         return jsonify({"error": "Missing required fields."}), 400
 
     # Call create_user from db.py
-    user_id = create_user(username, email, password)
-    return jsonify({"message": "User created", "user_id": str(user_id)}), 201
+    user = create_user(username, email, password, nessie_id)
+    return jsonify({"message": "User created", "user": user, "success": True}), 201
 
-@app.route('/api/login', methods=['POST'])
+
+@app.route("/api/login", methods=["POST"])
 def test_login():
     """
     Test endpoint to verify user credentials.
-    Expects JSON with 'username' and 'password'.
+    Expects JSON with 'email' and 'password'.
     """
     data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    
-    if not username or not password:
-        return jsonify({"error": "Missing username or password"}), 400
-    
-    if verify_user(username, password):
-        return jsonify({"message": "Login successful"}), 200
-    else:
-        return jsonify({"error": "Invalid username or password"}), 401
+    email = data.get("email")
+    password = data.get("password")
 
-@app.route('/api/user', methods=['GET'])
+    if not email or not password:
+        return jsonify({"error": "Missing email or password", "success": False}), 400
+
+    if verify_user(email, password):
+        return (
+            jsonify(
+                {
+                    "message": "Login successful",
+                    "success": True,
+                    "user": find_user_by_email(email),
+                }
+            ),
+            200,
+        )
+    else:
+        return jsonify({"error": "Invalid username or password", "sucesss": False}), 401
+
+
+@app.route("/api/user", methods=["GET"])
 def test_get_user():
     """
     Test endpoint to retrieve a user's details.
-    Expects a query parameter ?username=<username>
+    Expects a query parameter ?email=email
     """
-    username = request.args.get('username')
-    if not username:
-        return jsonify({"error": "Missing username query parameter"}), 400
+    email = request.args.get("email")
+    if not email:
+        return (
+            jsonify({"error": "Missing email query parameter", "success": False}),
+            400,
+        )
 
-    user = find_user_by_username(username)
+    user = find_user_by_email(email)
     if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    # Convert the ObjectId to string for JSON serialization
-    user['_id'] = str(user['_id'])
+        return jsonify({"error": "User not found", "success": False}), 404
     return jsonify(user), 200
 
-@app.route('/api/notify', methods=['POST'])
+
+@app.route("/api/notify", methods=["POST"])
 def notify():
     data = request.get_json()
     spend_history = data.get("spend_history", [])
@@ -93,20 +112,22 @@ def notify():
         return jsonify({"notification": "No new transactions. Good Job!"})
 
 
-@app.route('/api/chat', methods=['POST'])
+@app.route("/api/chat", methods=["POST"])
 def chat():
     data = request.get_json()
-    msg = data.get('chat', '')
-    chat_history = data.get('history', [])
-    recent_spends = data.get('recent_spends', [])
-    big_spends = data.get('big_spends', [])
-    budget = data.get('budget', '')
+    msg = data.get("chat", "")
+    chat_history = data.get("history", [])
+    recent_spends = data.get("recent_spends", [])
+    big_spends = data.get("big_spends", [])
+    budget = data.get("budget", "")
 
     genai2.configure(api_key=os.getenv("gemini_api_key"))
 
     system_prompt = {
         "role": "user",
-        "parts": [{"text": f"""
+        "parts": [
+            {
+                "text": f"""
             You are a small, cute financial tomagachi! You will be helping the user manage their spending. 
             Here are their most recent 10 transactions: {recent_spends}
             Here are the most recent large transactions: {big_spends}
@@ -120,40 +141,42 @@ def chat():
                     "A bit pricy for tacos huh..." 
                     "A tad expensive, but you've earned it!"
                     "New monitor? You just got a new phone..." 
-            """ }]
+            """
+            }
+        ],
     }
 
     # Check if the system prompt is already in the history, insert it
     # if not chat_history:
     chat_history.insert(0, system_prompt)
-    
+
     model = genai2.GenerativeModel(model_name="gemini-2.0-flash")
     chat_session = model.start_chat(history=chat_history)
     response = chat_session.send_message(msg)
     print(response.text)
 
-    return jsonify({
-        "text": response.text,
-        "history": [
+    return jsonify(
         {
-            "role": msg.role,
-            "parts": [{"text": part.text} for part in msg.parts]
+            "text": response.text,
+            "history": [
+                {"role": msg.role, "parts": [{"text": part.text} for part in msg.parts]}
+                for msg in chat_session.history
+            ],
         }
-        for msg in chat_session.history
-    ]
-    })
+    )
 
-@app.route('/api/compute_score', methods=['POST'])
+
+@app.route("/api/compute_score", methods=["POST"])
 def compute_score():
     """
     Expects JSON payload with the following keys:
-      - email_id 
-      - person_id 
+      - email_id
+      - person_id
       - spend_history: list of transaction objects
       - necessary_purchases: string
       - unnecessary_purchases: string
       - budget: integer (monthly budget)
-    
+
     Returns a JSON with the computed final score, an explanation, and a startup_msg.
     """
     data = request.get_json()
@@ -166,12 +189,15 @@ def compute_score():
         startup_msg = sentence_for_score(data, final_score)
     except Exception as e:
         return jsonify({"error": f"Score calculation failed: {str(e)}"}), 500
-    
-    return jsonify({
-        "final_score": final_score,
-        "explanation": explanation,
-        "intro_msg": startup_msg
-    })
 
-if __name__ == '__main__':
+    return jsonify(
+        {
+            "final_score": final_score,
+            "explanation": explanation,
+            "intro_msg": startup_msg,
+        }
+    )
+
+
+if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
