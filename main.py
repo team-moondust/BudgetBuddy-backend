@@ -227,6 +227,7 @@ def chat():
     chat_history = data.get("history", [])
     budget = data.get("budget", "")
     response_style = data.get("response_style", "")
+    goals = data.get("goals", "")
 
     user_email = data.get("email", "")
     spend_history = get_transasctions_from_email(user_email)
@@ -245,6 +246,7 @@ def chat():
                 Here are their most recent 10 transactions: {recent_spends}
                 Here are the most recent large transactions: {big_spends}
                 Here's their monthly budget: {budget}
+                Here are their financial goals: {goals}
                 You should respond in relatively short messages, and if you think its necessary, ask clarifying questions. 
                 Respond all lowercase, a bit lowkey, and like a friend showing tough love!
                 If they're doing well for their budget, be proud of them. If they're not doing as well, be a bit sarcastic but still helpful,
