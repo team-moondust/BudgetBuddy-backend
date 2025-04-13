@@ -281,7 +281,7 @@ def chat():
             ],
         }
     )
-    
+
 
 @app.route("/api/compute_score", methods=["POST"])
 def compute_final_score_for_person():
@@ -291,50 +291,62 @@ def compute_final_score_for_person():
       - An LLM analyzer (Gemini) score on the same data.
     The weights (0.7 and 0.3) should sum to 1.
     """
-    person = request.get_json()
-    email = person.get("email")
+    try:
+        person = request.get_json()
+        email = person.get("email")
 
-    transactions = get_transasctions_from_email(email)
+        transactions = get_transasctions_from_email(email)
+        print(transactions)
+        now = datetime.now()
+        cutoff = now - timedelta(days=30)
+        filtered_transactions = [
+            txn
+            for txn in transactions
+            if datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M") >= cutoff
+        ]
 
-    now = datetime.now()
-    cutoff = now - timedelta(days=30)
-    filtered_transactions = [
-        txn
-        for txn in transactions
-        if datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M") >= cutoff
-    ]
+        monthly_budget = person.get("monthly_budget", 0)
+        score_math = math_analyzer(filtered_transactions, monthly_budget)
 
-    monthly_budget = person.get("monthly_budget", 0)
-    score_math = math_analyzer(filtered_transactions, monthly_budget)
+        # Update the person dict with the filtered spend_history.
+        person_filtered = person.copy()
+        person_filtered["spend_history"] = filtered_transactions
+        score_llm = gemini_analyze_transactions(person_filtered)
 
-    # Update the person dict with the filtered spend_history.
-    person_filtered = person.copy()
-    person_filtered["spend_history"] = filtered_transactions
-    score_llm = gemini_analyze_transactions(person_filtered)
+        final_score = round((0.7 * score_math) + (0.3 * score_llm))
+        explanation = explanation_to_score(person)
+        startup_msg = sentence_for_score(person, final_score)
 
-    final_score = round((0.7 * score_math) + (0.3 * score_llm))
-    explanation = explanation_to_score(person)
-    startup_msg = sentence_for_score(person, final_score)
+        image = 0
+        if 80 <= final_score <= 100:
+            image = 1
+        elif 60 <= final_score < 80:
+            image = 2
+        elif 40 <= final_score < 60:
+            image = 3
+        elif 20 <= final_score < 40:
+            image = 4
+        else:
+            image = 5
 
-    image = 0
-    if 80 <= final_score <= 100:
-        image = 1
-    elif 60 <= final_score < 80:
-        image = 2
-    elif 40 <= final_score < 60:
-        image = 3
-    elif 20 <= final_score < 40:
-        image = 4
-    else:
-        image = 5
-
-    return jsonify(
-        {"final_score": final_score,
-         "explanation": explanation,
-         "startup_msg": startup_msg,
-         "image": image
-         }
-        )
+        return jsonify(
+            {
+                "success": True,
+                "res": {
+                    "final_score": final_score,
+                    "explanation": explanation,
+                    "startup_msg": startup_msg,
+                    "image": image,
+                },
+            }
+        ), 200
+    except Exception as err:
+        return jsonify(
+            {
+                "success": False,
+                "error": str(err)
+            }
+        ), 500
 
 
 @app.route("/api/fraud", methods=["POST"])

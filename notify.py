@@ -27,62 +27,25 @@ from datetime import datetime, timedelta
 
 
 
+
+
+
+
+# print("--------------------------------------------------------------------------------------------------")
+
 previous_new_spend = None
 
-def compute_final_score_for_person(email):
-    """
-    Compute the final financial health score for a person by combining:
-      - A math analyzer score (for the past 30 days of transactions)
-      - An LLM analyzer (Gemini) score on the same data.
-    The weights (0.7 and 0.3) should sum to 1.
-    """
-
+def notify(email):
+    global previous_new_spend
     emailEncoded = urllib.parse.quote(email)
 
-    person = requests.get(f"http://localhost:8080/api/user?email={emailEncoded}").json()
-    transactions = requests.get(f"http://localhost:8080/api/test/transactions?email={emailEncoded}").json()
+    spend_history = requests.get(f"http://localhost:8080/api/test/transactions?email={emailEncoded}").json()
+    
+    print(spend_history)
 
-    now = datetime.now()
-    cutoff = now - timedelta(days=30)
-    filtered_transactions = [
-        txn
-        for txn in transactions
-        if datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M") >= cutoff
-    ]
-    monthly_budget = person.monthly_budget
 
-    score_math = math_analyzer(filtered_transactions, monthly_budget)
-
-    # Update the person dict with the filtered spend_history.
-
-    person_filtered = person.copy()
-    person_filtered["spend_history"] = filtered_transactions
-    score_llm = gemini_analyze_transactions(person_filtered)
-
-    final_score = round((0.7 * score_math) + (0.3 * score_llm))
-    explanation = explanation_to_score(person)
-    startup_msg = sentence_for_score(person, final_score)
-
-    image = 0
-    if 80 <= final_score <= 100:
-        image = 1
-    elif 60 <= final_score < 80:
-        image = 2
-    elif 40 <= final_score < 60:
-        image = 3
-    elif 20 <= final_score < 40:
-        image = 4
-    else:
-        image = 5
-
-    return final_score, explanation, startup_msg, image
-
-print(compute_final_score_for_person("johndoe@example.com"))
-
-def notify(email):
-    spend_history = get_transasctions_from_email(email)
     new_spend, recent_spends, big_spends = process_transactions(spend_history)
-    if new_spend != "none" and new_spend != previous_new_spend:
+    if new_spend != "" and new_spend != "none" and new_spend != previous_new_spend:
         previous_new_spend = new_spend
         notification = make_notification(new_spend, recent_spends, big_spends)
         return notification, email
@@ -91,23 +54,38 @@ def notify(email):
 
 
 while True:
-    result = notify("marv@dih.com")
+    result = notify("twizz@asdf")
     if result:
-        
+        print(result)
         notification, email = result
-        _, _, _ , image_Id = compute_final_score_for_person(email)
+
+        emailEncoded = urllib.parse.quote(email)
+        person = requests.get(f"http://localhost:8080/api/user?email={emailEncoded}").json()
+        res = requests.post("http://localhost:8080/api/compute_score", data=json.dumps({"email": "twizz@asdf", "monthly_budget":person["monthly_budget"]}), headers={
+            "Content-Type": "application/json"
+        }).json()
+
+        # print(res)
+        # if not res["success"]:
+        #     print("fail")
+        # else:
+        #     print(res["res"])
+
+        image = res["res"]["image"]
+        pet_choice = person["pet_choice"]
 
         data = {
             "email": email,
             "title": "Buddy Checking In!",
             "body": notification,
-            "imageId": image_Id,
+            "imageId": image,
+            "pet_choice": pet_choice
         }
 
         jssssson = json.dumps(data)
 
-        requests.post(os.getenv("notification_url"), data=jssssson)
+        print(requests.post(os.getenv("notification_url") + "/push", headers={"Content-Type": "application/json"} , data=jssssson))
 
-    time.sleep(5*60)
+    time.sleep(5)
+    print("retrying...")
     
-    # email, title, body, imageId

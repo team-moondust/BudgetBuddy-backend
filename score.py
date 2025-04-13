@@ -13,23 +13,38 @@ load_dotenv()
 
 def math_analyzer(transactions, monthly_budget):
     """
-    Compute a numeric score (0-100) based on how close total spending is to an ideal percentage 
-    of the monthly budget. Here, the ideal spending is set to 75% of monthly_budget.
-    
-    The score is 100 if total spending equals 75% of the monthly_budget,
-    and decreases linearly as spending deviates from that ideal.
-    """
-    total_spent = sum(t["amount"] for t in transactions)
-    ideal_ratio = 0.75
-    ideal_spending = monthly_budget * ideal_ratio
-    # Calculate deviation ratio (as a fraction of ideal_spending)
-    deviation = abs(total_spent - ideal_spending) / ideal_spending if ideal_spending else 0
-    # Scale deviation to a penalty between 0 and 100:
-    penalty = deviation * 100
-    # The math score is 100 minus the penalty (capped between 0 and 100)
-    score = max(0, 100 - penalty)
-    return round(score, 2)
+    Compute a score (0–100) based on how responsibly the user is spending,
+    taking into account how far we are into the current month.
 
+    - Score is 100 if spending is under the expected pace for the date.
+    - If spending exceeds expected pace, penalize proportionally.
+    - Resets each month (starts on the 1st).
+    """
+    now = datetime.now()
+    current_day = now.day
+    days_in_month = (datetime(now.year, now.month % 12 + 1, 1) - timedelta(days=1)).day
+
+    # Spending allowed by this point in the month
+    time_progress = current_day / days_in_month
+    expected_spending = monthly_budget * time_progress
+
+    # Filter current-month transactions only
+    filtered_transactions = [
+        txn for txn in transactions
+        if datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M").month == now.month
+           and datetime.strptime(txn["purchase_date"], "%Y-%m-%d %H:%M").year == now.year
+    ]
+
+    total_spent = sum(txn["amount"] for txn in filtered_transactions)
+
+    if total_spent <= expected_spending:
+        return 100.0
+    else:
+        overspend_ratio = (total_spent - expected_spending) / monthly_budget
+        penalty = overspend_ratio * 100
+        score = max(0, 100 - penalty)
+        return round(score, 2)
+    
 # -----------------------------
 # 2. LLM (Gemini) Analyzer Simulation
 # -----------------------------
